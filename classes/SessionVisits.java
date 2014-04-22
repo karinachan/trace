@@ -31,7 +31,7 @@ public class SessionVisits extends HttpServlet
 
         Connection con = null;
         try {
-            con = TraceDB.connect("tracdb"); //need to change this to another one
+            con = TraceDB.connect("trace_db"); //need to change this to another one
             pageheader(out,"Visit sessions");
 
             printWelcome(session,out);
