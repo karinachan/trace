@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<web-app>
+  <description>
+     Wendy Wellesley's web apps
+    </description>
+  <display-name>Wendy's Web Apps</display-name>
+  <servlet>
+    <servlet-class>Greetings</servlet-class>
+    <servlet-name>Greetings</servlet-name>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Greetings</servlet-name>
+    <url-pattern>/servlet/Greetings</url-pattern>
+  </servlet-mapping>
+</web-app>
