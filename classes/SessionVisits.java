@@ -6,9 +6,9 @@ import java.util.*;
 
 public class SessionVisits extends HttpServlet
 {
-    
+
     private final String SHOW_BUTTON = "show visits";
-    private final String TT_INPUT = "tt"; //change this to B numbers
+    private final String BN_INPUT = "bn"; //change this to B numbers
 
     protected void doRequest(HttpServletRequest req, HttpServletResponse res)
         throws ServletException, IOException
@@ -17,15 +17,15 @@ public class SessionVisits extends HttpServlet
         res.setContentType("text/html");
         res.setHeader("pragma", "no-cache");
         PrintWriter out = res.getWriter();
-        
+
         String self = res.encodeURL(req.getRequestURI());
 
         int visits = updateVisits(session);
 
         HashMap<String,Integer> inSession =
             (HashMap<String,Integer>) session.getAttribute("students_loggedin");
-        if( cart == null ) {
-            cart = new HashMap<String,Integer>();
+        if( inSession == null ) {
+            inSession = new HashMap<String,Integer>();
             session.setAttribute("students_loggedin",inSession);
         }
 
@@ -36,10 +36,10 @@ public class SessionVisits extends HttpServlet
 
             printWelcome(session,out);
 
-            String tt = req.getParameter(TT_INPUT); //will change to B numbers
-            String title = req.getParameter(TT_INPUT); //will change to B numbers
-            addtocart(cart,out,tt,title);
-            processShowCart(req,out,self,inSession);
+            String bn = req.getParameter(BN_INPUT); //will change to B numbers
+            String stuName = req.getParameter("title"); //will change to B numbers
+            addtoinSession(inSession,out,bn,stuName);
+            processShowinSession(req,out,self,inSession);
             printforms(out,con,self);
         }
         catch (Exception e) {
@@ -75,30 +75,30 @@ public class SessionVisits extends HttpServlet
         if( visits > 1 ) {
                 out.println ("<p>Welcome back!  You've visited " + visits + " times.\n");
             } else {
-                out.println ("<p>Welcome! This page allows you to order movies.\n");
+                out.println ("<p>Welcome! This page allows you to log students in.\n");
             }
     }
     //add students to the logged in list. Modify this so that single tutor + multiple tutor options
     //also revise the quantity so that the hashmap value is a <String,String> (tutee,tutor)
-    private void addtolist(HashMap<String,Integer> loggedin, PrintWriter out, String tt, String title) { 
-        if( tt != null ) { //if B number exists
+    private void addtolist(HashMap<String,Integer> loggedin, PrintWriter out, String bn, String stuName) {
+        if( bn != null ) { //if B number exists
             out.println("<p>Thanks for logging in! <strong>"
-                        +title+"</strong> ("+tt+"); we'll record your visit.\n");
+                        +stuName+"</strong> ("+bn+"); we'll record your visit.\n");
             int quantity;
-            if( loggedin.get("tt"+tt) == null ) {
+            if( loggedin.get("bn"+bn) == null ) {
                 quantity = 1;
             } else {
-                Integer Curr = (Integer) loggedin.get("tt"+tt);
+                Integer Curr = (Integer) loggedin.get("bn"+bn);
                 int curr = Curr.intValue();
                 quantity = 1+curr;
             }
-            cart.put("tt"+tt,(Integer) quantity);
+            inSession.put("bn"+bn,(Integer) quantity);
         }
     }
 
 
 
-    private void processShowCart(HttpServletRequest req,
+    private void processShowinSession(HttpServletRequest req,
                                  PrintWriter out,
                                  String self,
                                  HashMap<String,Integer> loggedin) {
@@ -118,7 +118,7 @@ public class SessionVisits extends HttpServlet
         out.println("<ul>");
         while (it.hasNext()) {
             String key = (String) it.next();
-            out.println("<li>" + key + " => " + (cart.get(key)).toString());
+            out.println("<li>" + key + " => " + (inSession.get(key)).toString());
         }
         out.println("</ul>");
     }
@@ -129,16 +129,16 @@ public class SessionVisits extends HttpServlet
     {
         Statement query = con.createStatement();
         ResultSet result = query.executeQuery("SELECT tt,title FROM movie ORDER BY title");
-            
+
         out.println("<ol>");
         while(result.next()) {
-            String tt = result.getString(1);
-            String title = result.getString(2);
+            String bn = result.getString(1);
+            String stuName = result.getString(2);
             if(!result.wasNull()) {
                 out.println("<form method='post' action='"+self+"'>"+
-                            "<input type='hidden' name='"+TT_INPUT+"' value='"+tt+"'>" +
-                            "<input type='hidden' name='title' value='"+title+"'>\n"+
-                            "<li><input type='submit' value='add to cart'> "+title+"</form>");
+                            "<input type='hidden' name='"+BN_INPUT+"' value='"+bn+"'>" +
+                            "<input type='hidden' name='title' value='"+stuName+"'>\n"+
+                            "<li><input type='submit' value='add to inSession'> "+stuName+"</form>");
             } else {
                 out.println("<li> &nbsp;"); // should never happen
             }
@@ -155,7 +155,7 @@ public class SessionVisits extends HttpServlet
                     + "<link rel='stylesheet' type='text/css' href='../css/webdb-style.css'>\n"
                     + "</head>\n");
     }
-        
+
     protected void doGet(HttpServletRequest req, HttpServletResponse res)
         throws ServletException, IOException
     {
