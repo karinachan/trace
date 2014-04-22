@@ -1,7 +1,7 @@
 import java.io.*;               // for Printwriter
 import java.sql.*;              // for Connection
 
-public class Webdb {
+public class TraceDB {
 
     private static final String HOSTNAME = "tempest.wellesley.edu";
     private static final String USERNAME = "trace";
