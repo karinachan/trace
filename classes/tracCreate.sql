@@ -26,24 +26,33 @@ ENGINE=InnoDB;
 
 create table classes(
 crn integer primary key, -- crn of class
+className varchar(5) not null,
 vtype enum('helproom/peer tutoring','SI','writing tutor','none'))
 ENGINE = InnoDB;
 
-create table sessions(
+create table sessions( -- I think we'll have to have this insert the rest of info first and then update with time
 vid integer auto_increment primary key not null,
 tid integer not null,
 crn integer not null,
 bid integer not null,
 roomnum integer not null,
-dayof char(10) not null, -- missing the time for now, put int as placeholder
-timeof integer not null,
+tsIN datetime,
+tsOUT TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 foreign key (tid) references tutors(bid) on delete restrict,
 foreign key (crn) references classes(crn) on delete restrict,
 foreign key (bid) references students(bid) on delete restrict)
 ENGINE = InnoDB;
 
 
+DELIMITER//
+CREATE TRIGGER sessionOUT
+BEFORE INSERT ON sessions
+FOR EACH ROW
+BEGIN
+  SET NEW.created = CURRENT_TIMESTAMP();
+end
 
+//
 create table taking(
 bid integer not null,
 crn integer not null,
