@@ -136,8 +136,9 @@ public class SessionVisits extends HttpServlet
         Statement query = con.createStatement();
         ResultSet result = query.executeQuery("select students.bid, studname, classes.crn, className from taking, classes, students where students.bid=taking.bid and taking.crn=classes.crn order by classname;");
 
-        out.println("<ol>");
+        out.println("HERE<ol>");
         while(result.next()) {
+            out.println("in while");
             String bn = result.getString("students.bid");
             String stuName = result.getString("studname");
             //add classes later maybe if needed (need to check if the class even has HR/SI)
