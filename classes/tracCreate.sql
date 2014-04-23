@@ -21,7 +21,9 @@ ENGINE= InnoDB;
 
 create table tutors(
 bid int primary key not null,
-foreign key (bid) references students(bid) on delete restrict)
+crn int not null,
+foreign key (bid) references students(bid) on delete restrict,
+foreign key (crn) references classes(crn) on delete restrict)
 ENGINE=InnoDB;
 
 create table classes(
