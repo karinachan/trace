@@ -5,7 +5,7 @@ public class TraceDB {
 
     private static final String HOSTNAME = "tempest.wellesley.edu";
     private static final String USERNAME = "trace";
-    private static final String PASSWORD = "i1n2t3r4a5";
+    private static final String PASSWORD = "bTYo7z1dEQ8kTkP";
 
     /**
 
