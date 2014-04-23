@@ -135,7 +135,7 @@ public class SessionVisits extends HttpServlet
     private void printforms(PrintWriter out, Connection con, String self)
         throws SQLException
     {
-        out.println("in printforms")
+        out.println("in printforms");
         Statement query = con.createStatement();
         ResultSet result = query.executeQuery("select students.bid, studname, classes.crn, className from taking, classes, students where students.bid=taking.bid and taking.crn=classes.crn order by classname;");
 
