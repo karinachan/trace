@@ -51,8 +51,8 @@ FOR EACH ROW
 BEGIN
   SET NEW.created = CURRENT_TIMESTAMP();
 end
-
 //
+
 create table taking(
 bid integer not null,
 crn integer not null,
