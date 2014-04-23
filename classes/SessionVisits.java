@@ -3,7 +3,13 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import java.sql.*;
 import java.util.*;
+/*
+Goal: Establish sessions tracking.
+1. Generate the list of people taking classes
+2. When you click on their names then they are logged in
+3. A cookie is stored and the length of their session is inserted
 
+*/
 public class SessionVisits extends HttpServlet
 {
 
@@ -128,17 +134,18 @@ public class SessionVisits extends HttpServlet
         throws SQLException
     {
         Statement query = con.createStatement();
-        ResultSet result = query.executeQuery("SELECT tt,title FROM movie ORDER BY title");
+        ResultSet result = query.executeQuery("select students.bid, studname, classes.crn, className from taking, classes, students where students.bid=taking.bid and taking.crn=classes.crn order by classname;");
 
         out.println("<ol>");
         while(result.next()) {
-            String bn = result.getString(1);
-            String stuName = result.getString(2);
+            String bn = result.getString("students.bid");
+            String stuName = result.getString("studname");
+            //add classes later maybe if needed (need to check if the class even has HR/SI)
             if(!result.wasNull()) {
                 out.println("<form method='post' action='"+self+"'>"+
-                            "<input type='hidden' name='"+BN_INPUT+"' value='"+bn+"'>" +
+                            "<input type='hidden' name='BN_INPUT' value='"+bn+"'>" +
                             "<input type='hidden' name='title' value='"+stuName+"'>\n"+
-                            "<li><input type='submit' value='add to inSession'> "+stuName+"</form>");
+                            "<li><input type='submit' value='login'> "+stuName+"</form>");
             } else {
                 out.println("<li> &nbsp;"); // should never happen
             }
