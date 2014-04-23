@@ -37,7 +37,9 @@ public class SessionVisits extends HttpServlet
 
         Connection con = null;
         try {
+            out.println("try connect");
             con = TraceDB.connect("trace_db"); //need to change this to another one
+            out.println("connectdb");
             pageheader(out,"Visit sessions");
 
             printWelcome(session,out);
@@ -133,6 +135,7 @@ public class SessionVisits extends HttpServlet
     private void printforms(PrintWriter out, Connection con, String self)
         throws SQLException
     {
+        out.println("in printforms")
         Statement query = con.createStatement();
         ResultSet result = query.executeQuery("select students.bid, studname, classes.crn, className from taking, classes, students where students.bid=taking.bid and taking.crn=classes.crn order by classname;");
 
