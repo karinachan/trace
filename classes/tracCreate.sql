@@ -63,8 +63,7 @@ load data local infile 'studentsData.csv' into table students fields terminated 
 load data local infile 'classestable.csv' into table classes fields terminated by ',' lines terminated by '\r';
 -- SET FOREIGN_KEY_CHECKS=0;
 
-
-load data local infile 'tutorData.csv' into table tutors fields terminated by ',' lines terminated by '\r';
-
 load data local infile 'takingData.csv' into table taking fields terminated by ',' lines terminated by '\r';
 -- SET FOREIGN_KEY_CHECKS=1;
+
+load data local infile 'tutorData.csv' into table tutors fields terminated by ',' lines terminated by '\r';
