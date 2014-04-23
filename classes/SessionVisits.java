@@ -38,7 +38,7 @@ public class SessionVisits extends HttpServlet
 
             String bn = req.getParameter(BN_INPUT); //will change to B numbers
             String stuName = req.getParameter("title"); //will change to B numbers
-            addtoinSession(inSession,out,bn,stuName);
+            addtolist(inSession,out,bn,stuName);
             processShowinSession(req,out,self,inSession);
             printforms(out,con,self);
         }
@@ -92,7 +92,7 @@ public class SessionVisits extends HttpServlet
                 int curr = Curr.intValue();
                 quantity = 1+curr;
             }
-            inSession.put("bn"+bn,(Integer) quantity);
+            loggedin.put("bn"+bn,(Integer) quantity);
         }
     }
 
@@ -118,7 +118,7 @@ public class SessionVisits extends HttpServlet
         out.println("<ul>");
         while (it.hasNext()) {
             String key = (String) it.next();
-            out.println("<li>" + key + " => " + (inSession.get(key)).toString());
+            out.println("<li>" + key + " => " + (loggedin.get(key)).toString());
         }
         out.println("</ul>");
     }
