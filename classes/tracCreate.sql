@@ -36,22 +36,12 @@ tid integer not null,
 crn integer not null,
 bid integer not null,
 roomnum integer not null,
-tsIN datetime,
-tsOUT TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+length integer not null, -- right now just a length, maybe use cookies to capture the actual time! 
 foreign key (tid) references tutors(bid) on delete restrict,
 foreign key (crn) references classes(crn) on delete restrict,
 foreign key (bid) references students(bid) on delete restrict)
 ENGINE = InnoDB;
 
-
-DELIMITER//
-CREATE TRIGGER sessionOUT
-BEFORE INSERT ON sessions
-FOR EACH ROW
-BEGIN
-  SET NEW.created = CURRENT_TIMESTAMP();
-end
-//
 
 create table taking(
 bid integer not null,
