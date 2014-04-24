@@ -53,6 +53,10 @@ public class SessionVisits extends HttpServlet
             processShowinSession(req,out,self,inSession);
             printforms(out,con,self);
         }
+        catch (SQLException e) {
+            out.println("Error: " + e);
+
+        }
         catch (Exception e) {
             e.printStackTrace(out);
         }
@@ -93,7 +97,7 @@ public class SessionVisits extends HttpServlet
     //also revise the quantity so that the hashmap value is a <String,String[]?> (tutee,tutor)
 
 
-    private void addtolist(Connection con, HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName) {
+    private void addtolist(Connection con, HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName) throws SQLException{
         out.println("in addtolist");
         //out.println("bn: "+bn);
 
