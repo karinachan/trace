@@ -127,7 +127,7 @@ public class SessionVisits extends HttpServlet
         out.println("<ul>");
         while (it.hasNext()) {
             String key = (String) it.next();
-            out.println("<li>" + key + " => " + (loggedin.get(key)));
+            out.println("<li>" + key + " => " + (loggedin.get(key)).toString());
         }
         out.println("</ul>");
     }
@@ -138,7 +138,7 @@ public class SessionVisits extends HttpServlet
     {
 
         Statement query = con.createStatement();
-        ResultSet result = query.executeQuery("select students.bid, studname, classes.crn, className from taking, classes, students where students.bid=taking.bid and taking.crn=classes.crn order by classname;");
+        ResultSet result = query.executeQuery("select students.bid, studname, classes.crn, className from taking, classes, students where students.bid=taking.bid and taking.crn=classes.crn order by studname;");
 
         out.println("<ol>");
         while(result.next()) {
@@ -150,7 +150,7 @@ public class SessionVisits extends HttpServlet
                 out.println("<form method='post' action='"+self+"'>"+
                             "<input type='hidden' name='BN_INPUT' value='"+bn+"'>" +
                             "<input type='hidden' name='title' value='"+stuName+"'>\n"+
-                            "<li><input type='submit' value='login'> "+stuName+"</form>");
+                            "<li><input type='submit' value='add to '> "+stuName+"</form>");
             } else {
                 out.println("<li> &nbsp;"); // should never happen
             }
