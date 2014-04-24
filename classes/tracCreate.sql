@@ -9,6 +9,7 @@ drop table if exists tutors;
 drop table if exists taking;
 drop table if exists students;
 drop table if exists classes;
+drop table if exists visting;
 
 
 -- creating tables
@@ -39,12 +40,20 @@ vid integer auto_increment primary key not null,
 tid integer not null,
 crn integer not null,
 bid integer not null,
-roomnum integer not null,
-length integer not null, -- right now just a length, maybe use cookies to capture the actual time!
+roomnum varchar(10) not null,
+length integer, -- right now just a length, maybe use cookies to capture the actual time!
 foreign key (tid) references tutors(bid) on delete restrict,
 foreign key (crn) references classes(crn) on delete restrict,
 foreign key (bid) references students(bid) on delete restrict)
 ENGINE = InnoDB;
+
+
+create table visiting(
+  bid integer not null,
+  vid integer not null,
+  foreign key (vid) references sessions(vid) on delete restrict,
+  foreign key (bid) references students(bid) on delete restrict
+)
 
 
 create table taking(
@@ -67,3 +76,5 @@ load data local infile 'takingData.csv' into table taking fields terminated by '
 -- SET FOREIGN_KEY_CHECKS=1;
 
 load data local infile 'tutorData.csv' into table tutors fields terminated by ',' lines terminated by '\r';
+
+load data local infile 'visitingData.csv' into table visiting fields terminated by ',' lines terminated by '\r';
