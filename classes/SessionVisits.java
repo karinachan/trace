@@ -28,10 +28,10 @@ public class SessionVisits extends HttpServlet
 
         int visits = updateVisits(session);
 
-        HashMap<String,Integer> inSession =
-            (HashMap<String,Integer>) session.getAttribute("students_loggedin");
+        HashMap<String,String> inSession =
+            (HashMap<String,String>) session.getAttribute("students_loggedin");
         if( inSession == null ) {
-            inSession = new HashMap<String,Integer>();
+            inSession = new HashMap<String,String>();
             session.setAttribute("students_loggedin",inSession);
         }
 
@@ -44,10 +44,10 @@ public class SessionVisits extends HttpServlet
 
             printWelcome(session,out);
 
-            String bn = req.getParameter(BN_INPUT); //will change to B numbers
+            String bn = Integer.toString(req.getParameter(BN_INPUT)); //will change to B numbers
             String stuName = req.getParameter("title"); //will change to B numbers
 
-            //need to add the crn part 
+            //need to add the crn part
 
             addtolist(inSession,out,bn,stuName);
             processShowinSession(req,out,self,inSession);
