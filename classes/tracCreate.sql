@@ -77,4 +77,4 @@ load data local infile 'takingData.csv' into table taking fields terminated by '
 
 load data local infile 'tutorData.csv' into table tutors fields terminated by ',' lines terminated by '\r';
 
-load data local infile 'visitingData.csv' into table visiting fields terminated by ',' lines terminated by '\r';
+load data local infile 'sessionsData.csv' into table sessions fields terminated by ',' lines terminated by '\r';
