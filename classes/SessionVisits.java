@@ -96,7 +96,8 @@ public class SessionVisits extends HttpServlet
     private void addtolist(HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName) {
         out.println("in addtolist");
         //out.println("bn: "+bn);
-        if( !bn.equals("")) { //if B number exists
+
+        if( bn!=null) { //if B number exists
             out.println("<p>Thanks for logging in! <strong>"
                         +stuName+"</strong> ("+bn+"); we'll record your visit.\n");
 
@@ -153,7 +154,7 @@ public class SessionVisits extends HttpServlet
             //add classes later maybe if needed (need to check if the class even has HR/SI)
             if(!result.wasNull()) {
                 out.println("<form method='post' action='"+self+"'>"+
-                            "<input type='hidden' name='BN_INPUT' value='"+bn+"'>" +
+                            "<input type='hidden' name='"+BN_INPUT+"' value='"+bn+"'>" +
                             "<input type='hidden' name='title' value='"+stuName+"'>\n"+
                             "<li><input type='submit' value='add to '> "+stuName+"</form>");
             } else {
