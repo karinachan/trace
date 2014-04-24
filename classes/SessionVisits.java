@@ -37,15 +37,18 @@ public class SessionVisits extends HttpServlet
 
         Connection con = null;
         try {
-            out.println("try connect");
+
             con = TraceDB.connect("trace_db"); //need to change this to another one
-            out.println("connectdb");
+
             pageheader(out,"Visit sessions");
 
             printWelcome(session,out);
 
             String bn = req.getParameter(BN_INPUT); //will change to B numbers
             String stuName = req.getParameter("title"); //will change to B numbers
+
+            //need to add the crn part 
+
             addtolist(inSession,out,bn,stuName);
             processShowinSession(req,out,self,inSession);
             printforms(out,con,self);
@@ -87,20 +90,18 @@ public class SessionVisits extends HttpServlet
             }
     }
     //add students to the logged in list. Modify this so that single tutor + multiple tutor options
-    //also revise the quantity so that the hashmap value is a <String,String> (tutee,tutor)
-    private void addtolist(HashMap<String,Integer> loggedin, PrintWriter out, String bn, String stuName) {
+    //also revise the quantity so that the hashmap value is a <String,String[]?> (tutee,tutor)
+
+
+    private void addtolist(HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName) {
         if( bn != null ) { //if B number exists
             out.println("<p>Thanks for logging in! <strong>"
                         +stuName+"</strong> ("+bn+"); we'll record your visit.\n");
-            int quantity;
-            if( loggedin.get("bn"+bn) == null ) {
-                quantity = 1;
-            } else {
-                Integer Curr = (Integer) loggedin.get("bn"+bn);
-                int curr = Curr.intValue();
-                quantity = 1+curr;
-            }
-            loggedin.put("bn"+bn,(Integer) quantity);
+
+
+                String Curr = loggedin.get(bn);
+
+            loggedin.put(bn,stuName);
         }
     }
 
@@ -109,7 +110,7 @@ public class SessionVisits extends HttpServlet
     private void processShowinSession(HttpServletRequest req,
                                  PrintWriter out,
                                  String self,
-                                 HashMap<String,Integer> loggedin) {
+                                 HashMap<String,String> loggedin) {
         out.println("<form method='post' action='"+self+"'>"
                     +"<input type='submit' name='submit' value='"+SHOW_BUTTON+"'>"
                     +"</form>\n");
@@ -125,7 +126,7 @@ public class SessionVisits extends HttpServlet
         Iterator it = keys.iterator();
         out.println("<ul>");
         while (it.hasNext()) {
-            String key = (String) it.next();
+            String key = it.next();
             out.println("<li>" + key + " => " + (loggedin.get(key)).toString());
         }
         out.println("</ul>");
@@ -135,13 +136,13 @@ public class SessionVisits extends HttpServlet
     private void printforms(PrintWriter out, Connection con, String self)
         throws SQLException
     {
-        out.println("in printforms");
+
         Statement query = con.createStatement();
         ResultSet result = query.executeQuery("select students.bid, studname, classes.crn, className from taking, classes, students where students.bid=taking.bid and taking.crn=classes.crn order by classname;");
 
-        out.println("HERE<ol>");
+        out.println("<ol>");
         while(result.next()) {
-            out.println("in while");
+
             String bn = result.getString("students.bid");
             String stuName = result.getString("studname");
             //add classes later maybe if needed (need to check if the class even has HR/SI)
