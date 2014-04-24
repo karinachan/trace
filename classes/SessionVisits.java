@@ -49,7 +49,7 @@ public class SessionVisits extends HttpServlet
 
             //need to add the crn part
 
-            addtolist(inSession,out,bn,stuName);
+            addtolist(con, inSession,out,bn,stuName);
             processShowinSession(req,out,self,inSession);
             printforms(out,con,self);
         }
@@ -93,7 +93,7 @@ public class SessionVisits extends HttpServlet
     //also revise the quantity so that the hashmap value is a <String,String[]?> (tutee,tutor)
 
 
-    private void addtolist(HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName) {
+    private void addtolist(Connection con, HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName) {
         out.println("in addtolist");
         //out.println("bn: "+bn);
 
@@ -105,6 +105,14 @@ public class SessionVisits extends HttpServlet
                 String Curr = loggedin.get(bn);
 
             loggedin.put(bn,stuName);
+
+            PreparedStatement query = con.prepareStatement("INSERT into visiting (bid, vid) VALUES(?, 1)");
+            query.setString(1, bn);
+            query.executeUpdate();
+            out.println("added to visiting");
+
+
+
         } else {
           out.println("Please enter something!");
         }
