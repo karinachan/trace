@@ -44,7 +44,7 @@ public class SessionVisits extends HttpServlet
 
             printWelcome(session,out);
 
-            String bn = Integer.toString(req.getParameter(BN_INPUT)); //will change to B numbers
+            String bn = req.getParameter(BN_INPUT); //will change to B numbers
             String stuName = req.getParameter("title"); //will change to B numbers
 
             //need to add the crn part
@@ -120,14 +120,14 @@ public class SessionVisits extends HttpServlet
         }
     }
 
-    private void showlogged(PrintWriter out, HashMap<String,Integer> loggedin) {
+    private void showlogged(PrintWriter out, HashMap<String,String> loggedin) {
         out.println("<p>Logged in students include: ");
         Set keys = loggedin.keySet();
         Iterator it = keys.iterator();
         out.println("<ul>");
         while (it.hasNext()) {
             String key = it.next();
-            out.println("<li>" + key + " => " + (loggedin.get(key)).toString());
+            out.println("<li>" + key + " => " + (loggedin.get(key)));
         }
         out.println("</ul>");
     }
