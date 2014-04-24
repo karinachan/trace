@@ -5,7 +5,7 @@
 -- remove existing tables
 
 SET FOREIGN_KEY_CHECKS=0;
-drop table if exists visting;
+drop table if exists visiting;
 drop table if exists sessions;
 drop table if exists taking;
 drop table if exists tutors;
