@@ -95,7 +95,8 @@ public class SessionVisits extends HttpServlet
 
     private void addtolist(HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName) {
         out.println("in addtolist");
-        if( bn != null ) { //if B number exists
+        out.println("bn: "+bn);
+        if( !bn.equals(null) ) { //if B number exists
             out.println("<p>Thanks for logging in! <strong>"
                         +stuName+"</strong> ("+bn+"); we'll record your visit.\n");
 
