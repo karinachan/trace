@@ -126,7 +126,7 @@ public class SessionVisits extends HttpServlet
         Iterator it = keys.iterator();
         out.println("<ul>");
         while (it.hasNext()) {
-            String key = it.next();
+            String key = (String) it.next();
             out.println("<li>" + key + " => " + (loggedin.get(key)));
         }
         out.println("</ul>");
