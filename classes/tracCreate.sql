@@ -54,7 +54,7 @@ create table visiting(
   foreign key (vid) references sessions(vid) on delete restrict,
   foreign key (bid) references students(bid) on delete restrict
 )
-
+ENGINE= InnoDB;
 
 create table taking(
 bid integer not null,
