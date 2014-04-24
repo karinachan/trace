@@ -4,11 +4,11 @@
 
 -- remove existing tables
 
-drop table if exists sessions;
-drop table if exists visting;
 drop table if exists tutors;
+drop table if exists sessions;
 drop table if exists students;
 drop table if exists classes;
+drop table if exists visting;
 drop table if exists taking;
 
 
