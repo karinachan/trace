@@ -42,7 +42,7 @@ public class SessionVisits extends HttpServlet
 
             pageheader(out,"Visit sessions");
 
-            printWelcome(session,out);
+            printWelcome(session,out, con);
 
             String bn = req.getParameter(BN_INPUT); //will change to B numbers
             String stuName = req.getParameter("title"); //will change to B numbers
@@ -85,13 +85,31 @@ public class SessionVisits extends HttpServlet
         return visits;
     }
 
-    private void printWelcome(HttpSession session, PrintWriter out) {
+    private void printWelcome(HttpSession session, PrintWriter out, Connection con) throws SQLException {
         Integer visits = (Integer)session.getAttribute("visits");
-        if( visits > 1 ) {
-                out.println ("<p>Welcome back!  You've visited " + visits + " times.\n");
-            } else {
-                out.println ("<p>Welcome! This page allows you to log students in.\n");
-            }
+	PreparedStatement query = con.prepareStatement("SELECT tid, crn, roomnum, length from sessions where vid=?");
+	query.setInt(1, 1);
+	ResultSet rs = query.executeQuery();
+	rs.next();
+	int tid = rs.getInt("tid");
+	int crn = rs.getInt("crn");
+	String room = rs.getString("roomnum");
+	int length = rs.getInt("length");
+	PreparedStatement classquery = con.prepareStatement("SELECT className, vtype from classes where crn=?");
+	classquery.setInt(1,crn);
+	ResultSet classrs = classquery.executeQuery();
+	classrs.next();
+	String className = classrs.getString("className");
+	String type = classrs.getString("vtype");
+	PreparedStatement studentquery = con.prepareStatement("SELECT studname from students where bid=?");
+	studentquery.setInt(1, tid);
+	ResultSet studrs = studentquery.executeQuery();
+	studrs.next();
+	String studname = studrs.getString("studname");
+
+	out.println("<h1>"+className+" "+type+"<h1>");
+	out.println("<h2>Room: " + room + "     " + "Length: " + length + " hours" + "     " + "Tutor: " + studname+"</h2>");
+	
     }
     //add students to the logged in list. Modify this so that single tutor + multiple tutor options
     //also revise the quantity so that the hashmap value is a <String,String[]?> (tutee,tutor)
