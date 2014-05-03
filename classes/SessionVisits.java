@@ -15,6 +15,7 @@ public class SessionVisits extends HttpServlet
 
     private final String SHOW_BUTTON = "show visits";
     private final String BN_INPUT = "bn"; //change this to B numbers
+    private HashMap<String,String> studentlist = new HashMap<String,String>(); 
 
     protected void doRequest(HttpServletRequest req, HttpServletResponse res)
         throws ServletException, IOException
@@ -46,10 +47,27 @@ public class SessionVisits extends HttpServlet
 
             String bn = req.getParameter(BN_INPUT); //will change to B numbers
             String stuName = req.getParameter("title"); //will change to B numbers
-
+	    String x = req.getParameter("x");
+	    out.println("what is x when nothing is selected"+x);
+	    
+	    if(visits==0){
+	    Statement query = con.createStatement();
+	    ResultSet result = query.executeQuery("select studname, students.bid from taking, students where crn=13290 and students.bid=taking.bid;");
+	    
+	    while(result.next()){
+		String student = result.getString("studname");
+		String bid = result.getString("bid");
+		studentlist.put(bid, student);
+	    }
+	    }
+	    if (x!=null){ 
+		out.println(bn+stuName);
+		inSession.remove(bn);
+		studentlist.put(bn, stuName);
+	    }
             //need to add the crn part
 
-            addtolist(con, inSession,out,bn,stuName);
+            addtolist(con, inSession,out,bn,stuName, x);
             processShowinSession(req,out,self,inSession);
             printforms(out,con,self);
         }
@@ -115,19 +133,23 @@ public class SessionVisits extends HttpServlet
     //also revise the quantity so that the hashmap value is a <String,String[]?> (tutee,tutor)
 
 
-    private void addtolist(Connection con, HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName) throws SQLException{
-        out.println("in addtolist");
+    private void addtolist(Connection con, HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName, String x) throws SQLException{
+	//   out.println("in addtolist");
         //out.println("bn: "+bn);
 
-        if( bn!=null) { //if B number exists
-            out.println("<p>Thanks for logging in! <strong>"
-                        +stuName+"</strong> ("+bn+"); we'll record your visit.\n");
+        if( bn!=null && x==null) { //if B number exists
+	    /*    out.println("<p>Thanks for logging in! <strong>"
+		  +stuName+"</strong> ("+bn+"); we'll record your visit.\n");*/
 
 
-                String Curr = loggedin.get(bn);
+            String Curr = loggedin.get(bn);
 
             loggedin.put(bn,stuName);
-
+	    try{
+	    studentlist.remove(bn);
+	    } catch (Exception e){
+		out.println("Carry on");
+	    }
             PreparedStatement query = con.prepareStatement("INSERT into visiting (bid, vid) VALUES(?, 1)");
             query.setString(1, bn);
             query.executeUpdate();
@@ -147,23 +169,26 @@ public class SessionVisits extends HttpServlet
                                  PrintWriter out,
                                  String self,
                                  HashMap<String,String> loggedin) {
-        out.println("<form method='post' action='"+self+"'>"
+	/*  out.println("<form method='post' action='"+self+"'>"
                     +"<input type='submit' name='submit' value='"+SHOW_BUTTON+"'>"
                     +"</form>\n");
         String submit = req.getParameter("submit");
-        if( submit != null && submit.equals(SHOW_BUTTON) ) {
-            showlogged(out,loggedin);
-        }
+        if( submit != null && submit.equals(SHOW_BUTTON) ) {*/
+	showlogged(out,loggedin, self);
+	    // }
     }
 
-    private void showlogged(PrintWriter out, HashMap<String,String> loggedin) {
+    private void showlogged(PrintWriter out, HashMap<String,String> loggedin, String self) {
         out.println("<p>Logged in students include: ");
         Set keys = loggedin.keySet();
         Iterator it = keys.iterator();
         out.println("<ul>");
         while (it.hasNext()) {
             String key = (String) it.next();
-            out.println("<li>" + key + " => " + (loggedin.get(key)).toString());
+            out.println("<form method='post' action='"+self+"'>"+
+			"<input type='hidden' name='"+BN_INPUT+"' value='"+key+"'>"+
+			"<input type='hidden' name='title' value='"+(loggedin.get(key))+"'>"+
+			"<li><input type='submit' name='x' value='x'>" +(loggedin.get(key)) + "</form>");
         }
         out.println("</ul>");
     }
@@ -173,7 +198,23 @@ public class SessionVisits extends HttpServlet
         throws SQLException
     {
 
-        Statement query = con.createStatement();
+	Set keys = studentlist.keySet();
+	Iterator it= keys.iterator();
+	out.println("<ol>");
+	while (it.hasNext()) {
+	    String key = (String) it.next();
+	    /*   out.println(self);
+	    out.println(BN_INPUT);
+	    out.println(key);
+	    out.println(studentlist.get(key));*/
+	    out.println("<form method='post' action='"+self+"'>"+
+			"<input type='hidden' name='"+BN_INPUT+"' value='"+key+"'>"+
+			"<input type='hidden' name='title' value='"+(studentlist.get(key))+"'>"+
+			"<li><input type='submit' value='Log in '> " +(studentlist.get(key))+"</form>");
+	}
+	out.println("</o1>");
+
+	/*     Statement query = con.createStatement();
         ResultSet result = query.executeQuery("select students.bid, studname, classes.crn, className from taking, classes, students where students.bid=taking.bid and taking.crn=classes.crn order by studname;");
 
         out.println("<ol>");
@@ -190,8 +231,10 @@ public class SessionVisits extends HttpServlet
             } else {
                 out.println("<li> &nbsp;"); // should never happen
             }
-        }
-        out.println("</ol>");
+	    }*/
+
+	//	while(
+        //out.println("</ol>");
     }
 
     private void pageheader(PrintWriter out, String title) {
