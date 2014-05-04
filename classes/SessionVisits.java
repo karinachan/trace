@@ -15,6 +15,7 @@ public class SessionVisits extends HttpServlet
 
     private final String SHOW_BUTTON = "show visits";
     private final String BN_INPUT = "bn"; //change this to B numbers
+    private String CRN =""; 
     private HashMap<String,String> studentlist = new HashMap<String,String>(); 
 
     protected void doRequest(HttpServletRequest req, HttpServletResponse res)
@@ -36,12 +37,15 @@ public class SessionVisits extends HttpServlet
             session.setAttribute("students_loggedin",inSession);
         }
 
+	String crn = req.getParameter("crn");
+	CRN = crn;
+
         Connection con = null;
         try {
 
             con = TraceDB.connect("trace_db"); //need to change this to another one
 
-            pageheader(out,"Visit sessions");
+            pageheader(out,"Session Visits");
 
             printWelcome(session,out, con);
 
@@ -51,8 +55,10 @@ public class SessionVisits extends HttpServlet
 	    out.println("what is x when nothing is selected"+x);
 	    
 	    if(visits==0){
-	    Statement query = con.createStatement();
-	    ResultSet result = query.executeQuery("select studname, students.bid from taking, students where crn=13290 and students.bid=taking.bid;");
+		//	out.println("in visits"); 
+		PreparedStatement query = con.prepareStatement("select studname, students.bid from taking, students where crn=? and students.bid=taking.bid;");
+	       	query.setString(1, CRN);
+		ResultSet result = query.executeQuery();
 	    
 	    while(result.next()){
 		String student = result.getString("studname");
@@ -104,29 +110,34 @@ public class SessionVisits extends HttpServlet
     }
 
     private void printWelcome(HttpSession session, PrintWriter out, Connection con) throws SQLException {
+	out.println("welcome");
         Integer visits = (Integer)session.getAttribute("visits");
-	PreparedStatement query = con.prepareStatement("SELECT tid, crn, roomnum, length from sessions where vid=?");
-	query.setInt(1, 1);
+	PreparedStatement query = con.prepareStatement("SELECT tid, crn, roomnum, length from sessions where crn=?");
+	query.setString(1, CRN);
 	ResultSet rs = query.executeQuery();
-	rs.next();
-	int tid = rs.getInt("tid");
-	int crn = rs.getInt("crn");
-	String room = rs.getString("roomnum");
-	int length = rs.getInt("length");
-	PreparedStatement classquery = con.prepareStatement("SELECT className, vtype from classes where crn=?");
-	classquery.setInt(1,crn);
-	ResultSet classrs = classquery.executeQuery();
-	classrs.next();
-	String className = classrs.getString("className");
-	String type = classrs.getString("vtype");
-	PreparedStatement studentquery = con.prepareStatement("SELECT studname from students where bid=?");
-	studentquery.setInt(1, tid);
-	ResultSet studrs = studentquery.executeQuery();
-	studrs.next();
-	String studname = studrs.getString("studname");
+	if(rs.next()){
+	    int tid = rs.getInt("tid");
+	    int crn = rs.getInt("crn");
+	    String room = rs.getString("roomnum");
+	    int length = rs.getInt("length");
+	    PreparedStatement classquery = con.prepareStatement("SELECT className, vtype from classes where crn=?");
+	    classquery.setInt(1,crn);
+	    ResultSet classrs = classquery.executeQuery();
+	    if(classrs.next()){
+		String className = classrs.getString("className");
+		String type = classrs.getString("vtype");
+		PreparedStatement studentquery = con.prepareStatement("SELECT studname from students where bid=?");
+		studentquery.setInt(1, tid);
+		ResultSet studrs = studentquery.executeQuery();
+		if(studrs.next()){
+		    String studname = studrs.getString("studname");
+		    out.println("<h1>"+className+" "+type+"<h1>");
+		    out.println("<h2>Room: " + room + "     " + "Length: " + length + " hours" + "     " + "Tutor: " + studname+"</h2>");
+		}
+	    }
+	}
 
-	out.println("<h1>"+className+" "+type+"<h1>");
-	out.println("<h2>Room: " + room + "     " + "Length: " + length + " hours" + "     " + "Tutor: " + studname+"</h2>");
+	
 	
     }
     //add students to the logged in list. Modify this so that single tutor + multiple tutor options
@@ -137,10 +148,12 @@ public class SessionVisits extends HttpServlet
 	//   out.println("in addtolist");
         //out.println("bn: "+bn);
 
+	out.println("in afftolist"); 
+
         if( bn!=null && x==null) { //if B number exists
 	    /*    out.println("<p>Thanks for logging in! <strong>"
 		  +stuName+"</strong> ("+bn+"); we'll record your visit.\n");*/
-
+	    out.println("in if"); 
 
             String Curr = loggedin.get(bn);
 
@@ -150,10 +163,20 @@ public class SessionVisits extends HttpServlet
 	    } catch (Exception e){
 		out.println("Carry on");
 	    }
-            PreparedStatement query = con.prepareStatement("INSERT into visiting (bid, vid) VALUES(?, 1)");
+	    /*  PreparedStatement visitingquery = con.prepareStatement("Select vid from sessions where crn=?");
+	    out.println("crn"+CRN);
+	    visitingquery.setString(1, CRN);
+	    ResultSet results = visitingquery.executeQuery();
+	    String vid = ""; 
+	    out.println("in");
+	    if(results.next())
+		vid = results.getString("vid");
+	    out.println("vid");
+            PreparedStatement query = con.prepareStatement("INSERT into visiting (bid, vid) VALUES(?, ?)");
             query.setString(1, bn);
+	    query.setString(2, vid); 
             query.executeUpdate();
-            out.println("added to visiting");
+            out.println("added to visiting");*/
 
 
 
@@ -188,6 +211,7 @@ public class SessionVisits extends HttpServlet
             out.println("<form method='post' action='"+self+"'>"+
 			"<input type='hidden' name='"+BN_INPUT+"' value='"+key+"'>"+
 			"<input type='hidden' name='title' value='"+(loggedin.get(key))+"'>"+
+			"<input type='hidden' name='crn' value='"+CRN+"'>"+
 			"<li><input type='submit' name='x' value='x'>" +(loggedin.get(key)) + "</form>");
         }
         out.println("</ul>");
@@ -203,13 +227,13 @@ public class SessionVisits extends HttpServlet
 	out.println("<ol>");
 	while (it.hasNext()) {
 	    String key = (String) it.next();
-	    /*   out.println(self);
-	    out.println(BN_INPUT);
-	    out.println(key);
-	    out.println(studentlist.get(key));*/
+	   
+	    
+
 	    out.println("<form method='post' action='"+self+"'>"+
 			"<input type='hidden' name='"+BN_INPUT+"' value='"+key+"'>"+
 			"<input type='hidden' name='title' value='"+(studentlist.get(key))+"'>"+
+			"<input type='hidden' name='crn' value='"+CRN+"'>"+
 			"<li><input type='submit' value='Log in '> " +(studentlist.get(key))+"</form>");
 	}
 	out.println("</o1>");

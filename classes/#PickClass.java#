@@ -60,7 +60,6 @@ public class PickClass extends HttpServlet
 	out.println("<p><select name='crn'>");
 	while(results.next()){
 	    String crn = results.getString("crn");
-	    out.println(crn);
 	    String cname = results.getString("className");
 	    out.println("<option value='"+crn+"'>"+cname+"</option>");
 	}
