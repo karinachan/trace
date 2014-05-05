@@ -7,7 +7,7 @@ import java.util.*;
 public class PickClass extends HttpServlet
 {
 
-    private static final long serialVersionUID = 1L; //don't really know what this means
+    private static final long serialVersionUID = 1L;
     private final String userID = "admin";
     private final String password = "password";
     private String crnpick =""; 
@@ -16,7 +16,7 @@ public class PickClass extends HttpServlet
 	throws ServletException, IOException
     {
 	res.setContentType("text/html");
-	res.setHeader("pragma", "no-cache"); //what does this mean? LOL pragma?  
+	res.setHeader("pragma", "no-cache"); 
 	PrintWriter out = res.getWriter();
 
 	String self = res.encodeURL(req.getRequestURI());
@@ -29,47 +29,43 @@ public class PickClass extends HttpServlet
 	    pageHeader(out, "Pick Session");
 	    con = TraceDB.connect("trace_db");
 
-	    String name = getName(con);
-	    out.println("<h2>Welcome"+"</h2>");	
+	   	
 	    Cookie [] cookies= req.getCookies();
 
 	    String userName = null;
 	    String sessionID = null;
 
 	    
-	    out.println(cookies.length); //maybe just simplify this to use cookie length (if 1, then don't let in)
+	    //  out.println(cookies.length); //maybe just simplify this to use cookie length (if 1, then don't let in)
 	    if (cookies.length<2){
-		out.println("Please log in");
 	    	RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
-		  out.println("<font color=red>Either user name or password is wrong.</font>");
+		out.println("<font color=red>Access Denied. Please log in.</font>");
 	    
-            rd.include(req, res);
-	    }else {
-	    for (Cookie cookie: cookies){
-		    
-		if (cookie!=null){
-		    out.println(cookie.getName());
-		    if(cookie.getName().equals("user")){
-			out.println("checking for userName");
-			userName = cookie.getValue();
-			out.println("username is:"+ userName);
-		    }
-		    if(cookie.getName().equals("JSESSIONID")){
-			out.println("checking for ID");
-			sessionID = cookie.getValue();
-			out.println("session is"+ sessionID); }
-		}
+		rd.include(req, res);
 	    }
-
-	    printSessionList(out, con, self);
-	    }}
+	    else {
+		for (Cookie cookie: cookies){
+		    
+		    if (cookie!=null){
+			if(cookie.getName().equals("user")){
+			    userName = cookie.getValue();
+			}
+			if(cookie.getName().equals("JSESSIONID")){
+			    sessionID = cookie.getValue();
+			}
+		    }
+		}
+		String name = getName(con);
+		out.println("<h2>Welcome "+name+".</h2>");
+		printSessionList(out, con, self);
+	    }
+	}
 	catch (SQLException e) {
 	    out.println("Error: " + e);
 	}
 	catch (Exception e) {
-		out.println("Please log in");
-	    	RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
-		  out.println("<font color=red>Either user name or password is wrong.</font>");
+	    RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
+	    out.println("<font color=red>Access Denied. Please log in.</font>");
 	    
             rd.include(req, res);
 	    // e.printStackTrace(out);
@@ -93,18 +89,20 @@ public class PickClass extends HttpServlet
 	PreparedStatement sessionsQuery = con.prepareStatement("select classes.crn, className from sessions, classes where classes.crn=sessions.crn and tid=?");
 	sessionsQuery.setInt(1, 22222222);   //get tid from login later 
 	ResultSet results = sessionsQuery.executeQuery(); 
-	out.println(self);
 	out.println("<p>Choose your session.</p>");
 	out.println("<form method='post' action='/trace/servlet/SessionVisits'>"); //wasn't working with post...don't know why though
 	out.println("<p><select name='crn'>");
+
 	while(results.next()){
 	    String crn = results.getString("crn");
 	    out.println(crn);
 	    String cname = results.getString("className");
 	    out.println("<option value='"+crn+"'>"+cname+"</option>");
 	}
-	out.println("</select>");
 
+	out.println("</select>");
+	out.println("<input type='hidden' name='user' value='"+userID+"'>"+
+		    "<input type='hidden' name='pwd' value='"+password+"'>");
 	out.println("<input type='submit' name='submit' value='Go'></form>");
 
     }
@@ -156,7 +154,7 @@ public class PickClass extends HttpServlet
             Cookie userName = new Cookie("user", user);
             res.addCookie(userName);
 
-	    out.println("cookie added");
+	    // out.println("cookie added");
 
 	    /*	    String user = (String) session.getAttribute("user");
 	String userName = null;
