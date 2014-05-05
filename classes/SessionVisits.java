@@ -13,6 +13,10 @@ Goal: Establish sessions tracking.
 public class SessionVisits extends HttpServlet
 {
 
+      private static final long serialVersionUID = 1L; //don't really know what this means
+    private final String userID = "admin";
+    private final String password = "password";
+    private int visits;
     private final String SHOW_BUTTON = "show visits";
     private final String BN_INPUT = "bn"; //change this to B numbers
     private String CRN =""; 
@@ -25,11 +29,10 @@ public class SessionVisits extends HttpServlet
         res.setContentType("text/html");
         res.setHeader("pragma", "no-cache");
         PrintWriter out = res.getWriter();
-
+	visits=0; //can't initialize to null 
         String self = res.encodeURL(req.getRequestURI());
 
-        int visits = updateVisits(session);
-
+	// out.println(visits);
         HashMap<String,String> inSession =
             (HashMap<String,String>) session.getAttribute("students_loggedin");
         if( inSession == null ) {
@@ -37,40 +40,83 @@ public class SessionVisits extends HttpServlet
             session.setAttribute("students_loggedin",inSession);
         }
 
-	String crn = req.getParameter("crn");
-	CRN = crn;
+	CRN = req.getParameter("crn"); //should be the class number
+	//	out.println(CRN);
 
         Connection con = null;
+	 String userName = null;
+	    String sessionID = null;
         try {
-
+	    pageheader(out,"Session Visits");
             con = TraceDB.connect("trace_db"); //need to change this to another one
 
-            pageheader(out,"Session Visits");
+	    Cookie [] cookies= req.getCookies();
+
+	   
+
+	    
+	 
+	    for (Cookie cookie: cookies){
+		out.println(cookie.getName());
+		if (cookie!=null){
+		    if(cookie.getName().equals("user")){
+			//		out.println("checking for userName");
+			userName = cookie.getValue();
+			//	out.println(userName);
+		    }
+		    if(cookie.getName().equals("JSESSIONID")){
+			//	out.println("checking for ID");
+			sessionID = cookie.getValue();
+			//	out.println(sessionID); }
+		}
+		}}
+
+       
 
             printWelcome(session,out, con);
 
             String bn = req.getParameter(BN_INPUT); //will change to B numbers
             String stuName = req.getParameter("title"); //will change to B numbers
 	    String x = req.getParameter("x");
-	    out.println("what is x when nothing is selected"+x);
-	    
+	    //   out.println("what is x when nothing is selected"+x);
+	    //	    out.println(userName);
+	    out.println("visits"+visits);
+	    out.println("username"+userName);
 	    if(visits==0){
-		//	out.println("in visits"); 
+		out.println("in if");
+	       	visits = updateVisits(session, out);
+		out.println("after updatevisits");
 		PreparedStatement query = con.prepareStatement("select studname, students.bid from taking, students where crn=? and students.bid=taking.bid;");
 	       	query.setString(1, CRN);
 		ResultSet result = query.executeQuery();
 	    
-	    while(result.next()){
-		String student = result.getString("studname");
-		String bid = result.getString("bid");
-		studentlist.put(bid, student);
+		while(result.next()){
+		    String student = result.getString("studname");
+		    String bid = result.getString("bid");
+		    studentlist.put(bid, student);
+		}
 	    }
+	    else {
+       		RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
+		out.println("<font color=red>Either user name or password is wrong.</font>");
+		rd.include(req, res);
 	    }
+		
 	    if (x!=null){ 
-		out.println(bn+stuName);
+		//	out.println(bn+stuName);
 		inSession.remove(bn);
 		studentlist.put(bn, stuName);
-	    }
+	    } else if (inSession.size()!=0){
+		List keys= new ArrayList(inSession.keySet());
+		for (int i=0; i<keys.size(); i++) {
+		    studentlist.remove(inSession.get(i));
+		}}
+	    
+		else {
+		    out.println("didn't need to do anything");
+		}
+		
+	
             //need to add the crn part
 
             addtolist(con, inSession,out,bn,stuName, x);
@@ -82,7 +128,16 @@ public class SessionVisits extends HttpServlet
 
         }
         catch (Exception e) {
-            e.printStackTrace(out);
+	    try{
+	    if (!userName.equals(null)){
+	    	RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
+		  out.println("<font color=red>Either user name or password is wrong.</font>");
+            rd.include(req, res);
+	    }}
+	    catch (Exception g){
+		out.println("welp");
+	    }
+	    // e.printStackTrace(out);
         }
         finally {
             if( con != null ) {
@@ -97,20 +152,19 @@ public class SessionVisits extends HttpServlet
         out.println("</body></html>");
     }
 
-    private int updateVisits(HttpSession session) {
+    private int updateVisits(HttpSession session, PrintWriter out) {
         Integer visits = (Integer)session.getAttribute("visits");
-        if( visits == null ) {
-            visits = (Integer) 0;
-        } else {
+	out.println("visits1"+visits);
             visits = (Integer) (visits.intValue()+1);
-        }
+      
         // Store back in the session
         session.setAttribute("visits",(Integer) visits);
+	out.println("visits2"+visits);
         return visits;
     }
 
     private void printWelcome(HttpSession session, PrintWriter out, Connection con) throws SQLException {
-	out.println("welcome");
+	//	out.println("welcome");
         Integer visits = (Integer)session.getAttribute("visits");
 	PreparedStatement query = con.prepareStatement("SELECT tid, crn, roomnum, length from sessions where crn=?");
 	query.setString(1, CRN);
@@ -148,12 +202,12 @@ public class SessionVisits extends HttpServlet
 	//   out.println("in addtolist");
         //out.println("bn: "+bn);
 
-	out.println("in afftolist"); 
+	//	out.println("in afftolist"); 
 
         if( bn!=null && x==null) { //if B number exists
 	    /*    out.println("<p>Thanks for logging in! <strong>"
 		  +stuName+"</strong> ("+bn+"); we'll record your visit.\n");*/
-	    out.println("in if"); 
+	    //	    out.println("in if"); 
 
             String Curr = loggedin.get(bn);
 
@@ -183,7 +237,7 @@ public class SessionVisits extends HttpServlet
         } else {
           out.println("Please enter something!");
         }
-        out.println("reached end");
+	//  out.println("reached end");
     }
 
 
@@ -192,13 +246,9 @@ public class SessionVisits extends HttpServlet
                                  PrintWriter out,
                                  String self,
                                  HashMap<String,String> loggedin) {
-	/*  out.println("<form method='post' action='"+self+"'>"
-                    +"<input type='submit' name='submit' value='"+SHOW_BUTTON+"'>"
-                    +"</form>\n");
-        String submit = req.getParameter("submit");
-        if( submit != null && submit.equals(SHOW_BUTTON) ) {*/
+
 	showlogged(out,loggedin, self);
-	    // }
+	    
     }
 
     private void showlogged(PrintWriter out, HashMap<String,String> loggedin, String self) {
@@ -281,6 +331,35 @@ public class SessionVisits extends HttpServlet
     protected void doPost(HttpServletRequest req, HttpServletResponse res)
         throws ServletException, IOException
     {
+
+	 String user = req.getParameter("user");
+        String pwd = req.getParameter("pwd");
+	PrintWriter out = res.getWriter();
+         
+        if(userID.equals(user) && password.equals(pwd)){
+            HttpSession session = req.getSession();
+            session.setAttribute("user", "Swag");
+            //setting session to expire in 30 mins
+            session.setMaxInactiveInterval(30*60); 
+            Cookie userName = new Cookie("user", user);
+            res.addCookie(userName);
+
+	    out.println("cookie added");
+
+       
+        }else if (visits>=0) {
+	    out.println("chewy");
+	    out.println(visits);
+	    out.println("the user"+user);
+	    out.println("thepwd"+ pwd);
+	} else{
+	    out.println("crunch");
+	    out.println(visits);
+            RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
+	    //  PrintWriter out= res.getWriter();
+            out.println("<font color=red>Either user name or password is wrong.</font>");
+            rd.include(req, res);
+        }
         doRequest(req,res);
     }
 
