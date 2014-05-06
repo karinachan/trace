@@ -18,6 +18,7 @@
     private final String password = "password";
     private final String SHOW_BUTTON = "show visits";
     private final String BN_INPUT = "bn"; //change this to B numbers
+ 
     private String CRN ="";
     private HashMap<String,String> studentlist = new HashMap<String,String>();
     
@@ -84,10 +85,20 @@
 	      inSession.remove(bn);
 	      studentlist.put(bn, stuName);
           }
-          
-          addtolist(con, inSession,out,bn,stuName, x);
+	  //from the form 
+	  out.println("the form bn:" + bn);
+	  out.println("the form stuName: "+ stuName);
+     
+          addtolist(con, inSession,out,bn,stuName, x, req); //why why why wrong wrong worng no work 
+	  //	  updateList(con, inSession,out,bn,stuName, x, req);
           processShowinSession(req,out,self,inSession);
           printforms(out,con,self);
+	  out.println("<form method='post' action='"+self+"'>"+
+	  	      "<input type='submit' name='update' value='Submit'></form>"+
+		      "<form method='post' action='PickClass'>"+
+	 	      "<input type='submit' name='back' value='Back'>"+
+		      "<input type='hidden' name='pwd' value='"+password+"'>"+
+	  	      "<input type='hidden' name='user' value='"+userID+"'></form>");
         }
         catch (SQLException e) {
 	    out.println("Error: " + e);         
@@ -154,39 +165,82 @@
       }
           
       //adds students to "logged in" list
-      private void addtolist(Connection con, HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName, String x) throws SQLException{
+      private void addtolist(Connection con, HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName, String x, HttpServletRequest req) throws SQLException{
         
-	  if( bn!=null && x==null) { //if B number exists
+	  if( bn!=null && x==null) { //if B number exists and x button hasn't been pressed
+	      //is there an issue with this because it only does it once? 
  
 	    String Curr = loggedin.get(bn);
-          
+	    
 	    loggedin.put(bn,stuName);
 	    try{
 		studentlist.remove(bn);
-	    } catch (Exception e){
+	    } 
+	    catch (Exception e){
 		out.println("Carry on");
 	    }
-          /*  PreparedStatement visitingquery = con.prepareStatement("Select vid from sessions where crn=?");
-          out.println("crn"+CRN);
-          visitingquery.setString(1, CRN);
-          ResultSet results = visitingquery.executeQuery();
-          String vid = "";
-          out.println("in");
-          if(results.next())
-          vid = results.getString("vid");
-          out.println("vid");
-          PreparedStatement query = con.prepareStatement("INSERT into visiting (bid, vid) VALUES(?, ?)");
-          query.setString(1, bn);
-          query.setString(2, vid);
-          query.executeUpdate();
-          out.println("added to visiting");*/
+	    String button = req.getParameter("submit");
+	    
+	    /*
+	    if(button.equals("update")){
+		PreparedStatement visitingquery = con.prepareStatement("Select vid from sessions where crn=?");
+		// out.println("crn"+CRN);
+		visitingquery.setString(1, CRN);
+		ResultSet results = visitingquery.executeQuery();
+		String vid = "";
+		//	out.println("in");
+		if(results.next())
+		    vid = results.getString("vid");
+		// out.println("vid");
+		PreparedStatement query = con.prepareStatement("INSERT into visiting (bid, vid) VALUES(?, ?)");
+		query.setString(1, bn);
+		query.setString(2, vid);
+		query.executeUpdate();
+	      	out.println("Database updated.");
                
-	  } else {
-	      // out.println("Please enter something!");
+		} 
+	    */
+	  }
+	  else{
+	      out.println("else");
 	  }
       }
-      
-      
+
+      private void updateList(Connection con, HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName, String x, HttpServletRequest req) throws SQLException{
+	  try{
+	      String button = req.getParameter("submit");
+	      out.println("button submit: "+ button);
+	      if(button.equals("update")){
+		PreparedStatement visitingquery = con.prepareStatement("Select vid from sessions where crn=?");
+		// out.println("crn"+CRN);
+		visitingquery.setString(1, CRN);
+		ResultSet results = visitingquery.executeQuery();
+		String vid = "";
+		//	out.println("in");
+		if(results.next())
+		    vid = results.getString("vid");
+		// out.println("vid");
+		PreparedStatement query = con.prepareStatement("INSERT into visiting (bid, vid) VALUES(?, ?)");
+		query.setString(1, bn);
+		query.setString(2, vid);
+		query.executeUpdate();
+	      	out.println("Database updated.");
+	      }
+	      else{
+		  out.println("button does not equal update");
+		  out.println("bn"+bn);
+		  out.println("stuName"+stuName);
+		  out.println("blurb");
+	      }
+	  } catch (SQLException e){
+	      out.println(e);
+
+
+	  }
+	  
+               
+		//	} 
+      }
       
       private void processShowinSession(HttpServletRequest req, PrintWriter out,String self,HashMap<String,String> loggedin) {
 	  showlogged(out,loggedin, self); 
@@ -216,9 +270,9 @@
       {    
 	  Set keys = studentlist.keySet();
 	  Iterator it= keys.iterator();
-	  out.println("<br />");
+	  out.println("<br>");
 	  out.println("<p>Class List:</p>");
-	  out.println("<ol>");
+	  out.println("<ul>");
 	  while (it.hasNext()) {
 	      String key = (String) it.next();
   
@@ -230,7 +284,9 @@
 			  "<input type='hidden' name='pwd' value='"+password+"'>"+
 			  "<li><input type='submit' value='Log in '> " +(studentlist.get(key))+"</form>");
 	  }
-        out.println("</o1>"); 
+        out.println("</ul>"); 
+	//	out.println("<br><br><input type='submit' name='update' value='Submit'>"+
+	//	    "<input type='submit' name='back' value='Back'></form>");
       }
 
       private void pageheader(PrintWriter out, String title) {
