@@ -1,4 +1,5 @@
-  import java.io.*;
+/*SessionVisits.java*/
+    import java.io.*;
   import javax.servlet.*;
   import javax.servlet.http.*;
   import java.sql.*;
@@ -239,7 +240,7 @@
 	      String key = (String) it.next();
 	      out.println("key"+key);
 	  
-	  try{
+
 	      /*  PreparedStatement visitingquery = con.prepareStatement("Select vid from sessions where crn=?");
 	      visitingquery.setString(1, CRN);
 	      ResultSet results = visitingquery.executeQuery();
@@ -249,11 +250,13 @@
 	      */
 	      out.println("inside updateList: the key:"+key);
 	      out.println("inside updateList: the vid: "+ vid);
-	      PreparedStatement query = con.prepareStatement("use trace_db; INSERT into visiting (bid, vid) VALUES(?, ?)");
+	      try{
+	      PreparedStatement query = con.prepareStatement("INSERT into visiting (bid, vid) VALUES(?, ?);");
+	      
 	      query.setString(1, key); //trying to pass through 
 	      query.setString(2, vid); //how do we get the vid  of this? as the session id? 
 	      query.executeUpdate();
-	      out.println("Database updated.");
+	      out.println("Database updated!");
 	       }
 	  	  catch (SQLException e){
 	     out.println(e);	  
@@ -277,6 +280,7 @@
 			  "<input type='hidden' name='crn' value='"+CRN+"'>"+
 			  "<input type='hidden' name='user' value='"+userID+"'>"+
 			  "<input type='hidden' name='pwd' value='"+password+"'>"+
+			  "<input type='hidden' name='vid' value='"+vid+"'>"+
 			  "<li><input class='pure-button' type='submit' name='x' value='x'>" +(loggedin.get(key)) + "</form>");
 	  }
 	  out.println("</ul></p>");
@@ -296,7 +300,7 @@
   
 	      out.println("<form class='pure-form' method='post' action='"+self+"'>"+
 			  "<input type='hidden' name='"+BN_INPUT+"' value='"+key+"'>"+
-			  "<input type='hidden' name='title' value='"+(studentlist.get(key))+"'>"+
+			  "<input type='hidden' name='title' value='"+(studentlist.get(key))+"'>"+ "<input type='hidden' name='vid' value='"+vid+"'>"+
 			  "<input type='hidden' name='crn' value='"+CRN+"'>"+
 			  "<input type='hidden' name='user' value='"+userID+"'>"+
 			  "<input type='hidden' name='pwd' value='"+password+"'>"+
