@@ -11,6 +11,7 @@ public class PickClass extends HttpServlet
     private final String userID = "admin";
     private final String password = "password";
     private String crnpick =""; 
+    private String vid; 
 
     protected void doRequest(HttpServletRequest req, HttpServletResponse res)
 	throws ServletException, IOException
@@ -86,7 +87,7 @@ public class PickClass extends HttpServlet
     private void printSessionList(PrintWriter out, Connection con, String self) 
 	throws SQLException
     {
-	PreparedStatement sessionsQuery = con.prepareStatement("select classes.crn, className from sessions, classes where classes.crn=sessions.crn and tid=?");
+	PreparedStatement sessionsQuery = con.prepareStatement("select classes.crn, vid, tid, className from sessions, classes where classes.crn=sessions.crn and tid=?");
 	sessionsQuery.setInt(1, 22222222);   //get tid from login later 
 	ResultSet results = sessionsQuery.executeQuery(); 
 	out.println("<p>Choose your session.</p>");
@@ -97,12 +98,18 @@ public class PickClass extends HttpServlet
 	    String crn = results.getString("crn");
 	    out.println(crn);
 	    String cname = results.getString("className");
+	    vid= results.getString("vid");
+	    //out.println("vid"+ vid);
+	    //  out.println("tid"+tid);
 	    out.println("<option value='"+crn+"'>"+cname+"</option>");
 	}
 
 	out.println("</select>");
+
+	//	out.println("<input type='hidden' name='vid' value='"+vid+"'>");
 	out.println("<input type='hidden' name='user' value='"+userID+"'>"+
-		    "<input type='hidden' name='pwd' value='"+password+"'>");
+		    "<input type='hidden' name='pwd' value='"+password+"'>"+
+		    "<input type='hidden' name='vid' value='"+vid+"'>");
 	out.println("<input type='submit' name='submit' value='Go'></form>");
 
     }
