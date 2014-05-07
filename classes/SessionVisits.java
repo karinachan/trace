@@ -85,7 +85,7 @@
 	      out.println("in if visits>0 loaded=false");
 	      //     visits = updateVisits(session, out);
 	      loaded=true;
-	      PreparedStatement query = con.prepareStatement("select studname, students.bid from taking, students where crn=? and students.bid=taking.bid;");
+	      PreparedStatement query = con.prepareStatement("select studname, person.bid from taking, person where crn=? and person.bid=taking.bid;");
 	      query.setString(1, CRN);
 	      ResultSet result = query.executeQuery();
             
@@ -170,21 +170,21 @@
       }
       
       private void printWelcome(HttpSession session, PrintWriter out, Connection con) throws SQLException {
-	  PreparedStatement query = con.prepareStatement("SELECT tid, crn, roomnum, length from sessions where crn=?");
+	  PreparedStatement query = con.prepareStatement("SELECT tid, crn, roomnum, howlong from sessions where crn=?");
 	  query.setString(1, CRN);
 	  ResultSet rs = query.executeQuery();
 	  if(rs.next()){
 	      int tid = rs.getInt("tid");
 	      int crn = rs.getInt("crn");
 	      String room = rs.getString("roomnum");
-	      int length = rs.getInt("length");
+	      int length = rs.getInt("howlong");
 	      PreparedStatement classquery = con.prepareStatement("SELECT className, vtype from classes where crn=?");
 	      classquery.setInt(1,crn);
 	      ResultSet classrs = classquery.executeQuery();
 	      if(classrs.next()){
 		  String className = classrs.getString("className");
 		  String type = classrs.getString("vtype");
-		  PreparedStatement studentquery = con.prepareStatement("SELECT studname from students where bid=?");
+		  PreparedStatement studentquery = con.prepareStatement("SELECT studname from person where bid=?");
 		  studentquery.setInt(1, tid);
 		  ResultSet studrs = studentquery.executeQuery();
 		  if(studrs.next()){

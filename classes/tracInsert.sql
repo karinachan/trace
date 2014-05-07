@@ -11,3 +11,5 @@ load data infile 'studentsData.csv' into table students fields terminated by ','
 
 load data infile 'takingData.csv' into table taking fields terminated by ',' lines terminated by '\r';
 -- SET FOREIGN_KEY_CHECKS=1;
+
+load data infile 'sessionsData.csv' into table taking fields terminated by ',' lines termianted by '\r';

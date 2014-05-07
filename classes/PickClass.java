@@ -118,7 +118,7 @@ public class PickClass extends HttpServlet
     private String getName(Connection con) 
 	throws SQLException
     {
-	PreparedStatement query = con.prepareStatement("select studname from students where bid=?");
+	PreparedStatement query = con.prepareStatement("select studname from person where bid=?");
 	query.setInt(1, 22222222); //get bid from login later 
 	ResultSet results = query.executeQuery();
 	String name = ""; 
