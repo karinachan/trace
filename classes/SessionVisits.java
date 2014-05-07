@@ -47,9 +47,9 @@
 	}
       
 	CRN = req.getParameter("crn"); //should be the class number
-	out.println(CRN);
+	//out.println(CRN);
 	vid= req.getParameter("vid"); 
-	out.println(vid);
+	//out.println(vid);
 
 	Connection con = null;
 	String userName = null;
@@ -77,12 +77,13 @@
           String stuName = req.getParameter("title"); //will change to B numbers
           String x = req.getParameter("x");
        	  String button = req.getParameter("update");
-	  out.println("sessionid"+sessionID);
-	  out.println("username"+userName);
-	  out.println("visits"+visits);
-	  out.println("CRN"+ CRN);
+	  // out.println("sessionid"+sessionID);
+	  //out.println("username"+userName);
+	  //out.println("visits"+visits);
+	  //out.println("CRN"+ CRN);
           if(visits>0 && loaded==false){ //if you've visited the page and you haven't loaded the tree, load it
-	      visits = updateVisits(session, out);
+	      out.println("in if visits>0 loaded=false");
+	      //     visits = updateVisits(session, out);
 	      loaded=true;
 	      PreparedStatement query = con.prepareStatement("select studname, students.bid from taking, students where crn=? and students.bid=taking.bid;");
 	      query.setString(1, CRN);
@@ -90,9 +91,9 @@
             
 	      while(result.next()){
 		  String student = result.getString("studname");
-		  out.println("student:"+student);
+		  //out.println("student:"+student);
 		  String bid = result.getString("bid");
-		  out.println("bid:"+bid);
+		  //	  out.println("bid:"+bid);
 		  studentlist.put(bid, student);
 	      }
           }
@@ -102,22 +103,27 @@
 	      inSession.remove(bn);
 	      studentlist.put(bn, stuName);
           }
-
+	  out.println("button"+button);
 	  if(button!=null){
 	      if(button.equals("Submit")){
 		  out.println("update yes");
 		  updateList(con, inSession, out,bn);
+		  res.sendRedirect("http://cs.wellesley.edu:8080/trace/servlet/ConfirmSubmit");
+		  //	  RequestDispatcher rd = getServletContext().getRequestDispatcher("/servlet/PickClass");
+		  //rd.include(req, res);
 	      }
 	  }
+	  else{
 
 	  //from the form 
-	  	  out.println("the form bn:" + bn);
-	  	  out.println("the form stuName: "+ stuName);
-     
-		  addtolist(con, inSession,out,bn,stuName, x, req); //why why why wrong wrong worng no work 
+	  //	  out.println("the form bn:" + bn);
+	  //x	  out.println("the form stuName: "+ stuName);
+	  
+	      addtolist(con, inSession,out,bn,stuName, x, req); //why why why wrong wrong worng no work 
 	  // updateList(con, inSession,out,bn);
-          processShowinSession(req,out,self,inSession);
-          printforms(out,con,self);
+	      processShowinSession(req,out,self,inSession);
+	      printforms(out,con,self);
+	  }
        	  out.println("<form class='pure-form' method='post' action='"+self+"'>"+
 		      "<input type='hidden' name='pwd' value='"+password+"'>"+
 		      "<input type='hidden' name='user' value='"+userID+"'>"+
