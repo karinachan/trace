@@ -1,10 +1,8 @@
-import java.io.IOException;
-import java.io.PrintWriter;
- 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
+import java.io.*;
+import javax.servlet.*;
 import javax.servlet.http.*;
+import java.sql.*;
+import java.util.*;
  
 /**
  * Servlet implementation class LoginServlet
@@ -31,10 +29,10 @@ public class LoginServlet extends HttpServlet {
             Cookie userName = new Cookie("user", user);
             response.addCookie(userName);
             //Get the encoded URL string
-            String encodedURL = response.encodeRedirectURL("PickClass.java"); //send this to pick class.java
+            String encodedURL = response.encodeRedirectURL("http://cs.wellesley.edu:8080/trace/servlet/PickClass"); //this part isn't working...we have a loginsuccess.jsp page but i don't know how to run it. also, i think the sessions got fucked up with the log in part. also as of now there is no way to verify if someone was logged in for each individual sesssion visits or class pick page.....UGH this is really frustrating. 
             response.sendRedirect(encodedURL);
         }else{
-            RequestDispatcher rd = getServletContext().getRequestDispatcher("login.html");
+            RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
             PrintWriter out= response.getWriter();
             out.println("<font color=red>Either user name or password is wrong.</font>");
             rd.include(request, response);
@@ -42,4 +40,9 @@ public class LoginServlet extends HttpServlet {
  
     }
  
+   protected void doGet(HttpServletRequest req, HttpServletResponse res)
+        throws ServletException, IOException
+    {
+        doPost(req,res);
+    }
 }

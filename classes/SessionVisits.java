@@ -12,23 +12,27 @@
   3. A cookie is stored and the length of their session is inserted
   
   */
-  public class SessionVisits extends HttpServlet
-  {
+public class SessionVisits extends HttpServlet
+{
     
     private static final long serialVersionUID = 1L; //don't really know what this means
-    private final String userID = "admin";
-    private final String password = "password";
+    //    private final String userID = "admin";
+    //    private final String password = "password";
+    private String userID;
+    private String password;
     private final String SHOW_BUTTON = "show visits";
     private final String BN_INPUT = "bn"; //change this to B numbers
-      private boolean loaded= false; //whether initial hashmap has been created(not loaded here)
-      private String vid="";
+    private boolean loaded= false; //whether initial hashmap has been created(not loaded here)
+    private String vid="";
     private String CRN ="";
     private HashMap<String,String> studentlist = new HashMap<String,String>();
-
-      //vid not saving from req to req (logging in and out students) 
-      //also, some mysql error
-      //at some point we have to find another way to pass variables from page to page without hidden (you can literally 
-      //just steal the password rn
+    private String logbid;
+    private boolean verified=false; //initially not verified
+    
+    //vid not saving from req to req (logging in and out students) 
+    //also, some mysql error
+    //at some point we have to find another way to pass variables from page to page without hidden (you can literally 
+    //just steal the password rn
 
     protected void doRequest(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException
     {
@@ -36,7 +40,7 @@
 	res.setContentType("text/html");
 	res.setHeader("pragma", "no-cache");
 	PrintWriter out = res.getWriter();
-	
+	out.println("in sessionvisits");
 	int visits = updateVisits(session, out);
 	String self = res.encodeURL(req.getRequestURI());
       
@@ -45,21 +49,54 @@
 	    inSession = new HashMap<String,String>();
 	    session.setAttribute("students_loggedin",inSession);
 	}
+	String vid1=vid;
+	out.println("vid1"+vid);
+	CRN = req.getParameter("crn");
+	vid = CRN.substring(5);
+	out.println("vid"+vid);
+	CRN = CRN.substring(0,5);
+	
+	out.println("crn"+CRN);
       
-	CRN = req.getParameter("crn"); //should be the class number
-	//out.println(CRN);
-	vid= req.getParameter("vid"); 
-	//out.println(vid);
+	if(!vid1.equals(vid)){
+	    loaded=false;
+	    clearList(inSession, out);
+	}
+	//	CRN = (req.getParameter("crn")).substring(0,6); //should be the class number
+	//	out.println("crn"+CRN);
+	//vid= (req.getParameter("vid")).substring(6); 
+	//out.println("vid"+vid);
 
 	Connection con = null;
-	String userName = null;
-	String sessionID = null;
+	
 
 	try {
 	    pageheader(out,"Session Visits");
-	    con = TraceDB.connect("trace_db"); //need to change this to another one
+	    out.println("in try");
+	    //   con = TraceDB.connect("trace_db"); //need to change this to another one
         
+	    //  Cookie [] cookies= req.getCookies();
+	    //pageHeader(out, "Pick Session");
+	    con = TraceDB.connect("trace_db");
+
 	    Cookie [] cookies= req.getCookies();
+	    
+	
+
+	    
+	    //  out.println(cookies.length); //maybe just simplify this to use cookie length (if 1, then don't let in)
+      	    if (cookies.length<4){ //gonna have to change this.... 
+	    	RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
+		out.println("<font color=red>Access Denied. Please log in.</font>");
+	    
+		rd.include(req, res);
+	    }
+	    else {
+		verified=checkCookies(cookies, session, out, con, req, res);	    
+		
+	    }
+
+		/*
 	    for (Cookie cookie: cookies){
 		if (cookie!=null){
 		    if(cookie.getName().equals("user")){
@@ -70,7 +107,7 @@
 		    }
 		}
 	    }
-             
+		*/
 	    printWelcome(session,out, con); //don't know why this doesn't print when we reload the page with button
           
           String bn = req.getParameter(BN_INPUT); //will change to B numbers
@@ -79,9 +116,11 @@
        	  String button = req.getParameter("update");
 	  // out.println("sessionid"+sessionID);
 	  //out.println("username"+userName);
-	  //out.println("visits"+visits);
+	  out.println("visits"+visits);
+	  out.println("loaded"+loaded);
+	  out.println("verified"+verified);
 	  //out.println("CRN"+ CRN);
-          if(visits>0 && loaded==false){ //if you've visited the page and you haven't loaded the tree, load it
+          if(loaded==false && verified){ //if you've visited the page and you haven't loaded the tree, load it
 	      out.println("in if visits>0 loaded=false");
 	      //     visits = updateVisits(session, out);
 	      loaded=true;
@@ -104,11 +143,13 @@
 	      studentlist.put(bn, stuName);
           }
 	  out.println("button"+button);
+	   out.println("ABOUT TO UPDATE THE LIST THING"+ bn);
 	  if(button!=null){
 	      if(button.equals("Submit")){
 		  out.println("update yes");
+		 
 		  updateList(con, inSession, out,bn);
-		  res.sendRedirect("http://cs.wellesley.edu:8080/trace/servlet/ConfirmSubmit");
+		  //	  res.sendRedirect("http://cs.wellesley.edu:8080/trace/servlet/ConfirmSubmit");
 		  //	  RequestDispatcher rd = getServletContext().getRequestDispatcher("/servlet/PickClass");
 		  //rd.include(req, res);
 	      }
@@ -120,20 +161,21 @@
 	  //x	  out.println("the form stuName: "+ stuName);
 	  
 	      addtolist(con, inSession,out,bn,stuName, x, req); //why why why wrong wrong worng no work 
-	  // updateList(con, inSession,out,bn);
+	  // updateList(con, inSession,out,bn); 
 	      processShowinSession(req,out,self,inSession);
 	      printforms(out,con,self);
 	  }
        	  out.println("<form class='pure-form' method='post' action='"+self+"'>"+
-		      "<input type='hidden' name='pwd' value='"+password+"'>"+
-		      "<input type='hidden' name='user' value='"+userID+"'>"+
-		      "<input type='hidden' name='crn' value='"+CRN+"'>"+
-		      "<input type='hidden' name='vid' value='"+vid+"'>"+
+		      //  "<input type='hidden' name='pwd' value='"+password+"'>"+
+		      //"<input type='hidden' name='user' value='"+userID+"'>"+
+		      "<input type='hidden' name='crn' value='"+CRN+vid+"'>"+
+		      //      "<input type='hidden' name='vid' value='"+vid+"'>"+
 	  	      "<input class='pure-button' type='submit' name='update' value='Submit'></form>");
 	  out.println( "<form class='pure-form' method='post' action='PickClass'>"+
-	 	      "<input type='submit' name='back' value='Back'>"+
+		       "<input type='submit' name='back' value='Back'></form>");/*+
 		      "<input type='hidden' name='pwd' value='"+password+"'>"+
 	  	      "<input type='hidden' name='user' value='"+userID+"'></form>");
+									 */
         }
         catch (SQLException e) {
 	    out.println("Error: " + e);         
@@ -157,6 +199,44 @@
         out.println("</body></html>");
     }
       
+    private boolean checkCookies(Cookie [] cookies, HttpSession session, PrintWriter out, Connection con, HttpServletRequest req, HttpServletResponse res){
+		String userName = null;
+	String sessionID = null;
+	boolean working= false;
+	out.println("in checkCookie"); 
+	for (Cookie cookie: cookies){
+		    
+	    if (cookie!=null){
+		if(cookie.getName().equals("user")){
+		    userName = cookie.getValue();
+		    out.println("username"+userName);
+		}
+		if(cookie.getName().equals("JSESSIONID")){
+		    sessionID = cookie.getValue();
+		    out.println("sessionID"+sessionID);
+		}
+		if (cookie.getName().equals("bid")){
+		    logbid= cookie.getValue();
+		    out.println("logbid"+logbid);
+		}
+		//do this earlier? 
+	       
+		if (cookie.getName().equals("pwd")){
+		    password=cookie.getValue();
+		    out.println("password"+password);
+		}
+		if (cookie.getName().equals("crn")){
+		    CRN=cookie.getValue();
+		    out.println("crnpick"+CRN);
+		}
+		working=true;	
+	    }}
+
+
+
+	    return working;
+	
+    }
       private int updateVisits(HttpSession session, PrintWriter out) {
 	  Integer visits = (Integer)session.getAttribute("visits");
 	  if(visits == null){
@@ -196,6 +276,11 @@
 	  }
          
       }
+
+    private void clearList(HashMap<String, String> loggedin, PrintWriter out){
+	loggedin.clear();
+	studentlist.clear();
+    }
           
       //adds students to "logged in" list
       private void addtolist(Connection con, HashMap<String,String> loggedin, PrintWriter out, String bn, String stuName, String x, HttpServletRequest req) throws SQLException{
@@ -246,7 +331,7 @@
 	  while(it.hasNext()){
 	      String key = (String) it.next();
 	      out.println("key"+key);
-	  
+	      
 
 	      /*  PreparedStatement visitingquery = con.prepareStatement("Select vid from sessions where crn=?");
 	      visitingquery.setString(1, CRN);
@@ -282,12 +367,13 @@
 	  while (it.hasNext()) {
 	      String key = (String) it.next();
 	      out.println("<form class='pure-form' method='post' action='"+self+"'>"+
-			  "<input type='hidden' name='"+BN_INPUT+"' value='"+key+"'>"+
-			  "<input type='hidden' name='title' value='"+(loggedin.get(key))+"'>"+
-			  "<input type='hidden' name='crn' value='"+CRN+"'>"+
-			  "<input type='hidden' name='user' value='"+userID+"'>"+
-			  "<input type='hidden' name='pwd' value='"+password+"'>"+
-			  "<input type='hidden' name='vid' value='"+vid+"'>"+
+			  "<input type='hidden' name='crn' value='"+CRN+vid+"'>"+
+		      	  "<input type='hidden' name='"+BN_INPUT+"' value='"+key+"'>"+
+		       	  "<input type='hidden' name='title' value='"+(loggedin.get(key))+"'>"+
+			  //	  "<input type='hidden' name='crn' value='"+CRN+"'>"+
+			  //"<input type='hidden' name='user' value='"+userID+"'>"+
+			  //"<input type='hidden' name='pwd' value='"+password+"'>"+
+			  //  "<input type='hidden' name='vid' value='"+vid+"'>"+
 			  "<li><input class='pure-button' type='submit' name='x' value='x'>" +(loggedin.get(key)) + "</form>");
 	  }
 	  out.println("</ul></p>");
@@ -297,20 +383,25 @@
       private void printforms(PrintWriter out, Connection con, String self)
       throws SQLException
       {    
+	  
 	  Set keys = studentlist.keySet();
 	  Iterator it= keys.iterator();
+	 
 	  out.println("<br>");
 	  out.println("<p>Class List:</p>");
 	  out.println("<ul>");
 	  while (it.hasNext()) {
+	      //      out.println("in it");
 	      String key = (String) it.next();
   
 	      out.println("<form class='pure-form' method='post' action='"+self+"'>"+
-			  "<input type='hidden' name='"+BN_INPUT+"' value='"+key+"'>"+
-			  "<input type='hidden' name='title' value='"+(studentlist.get(key))+"'>"+ "<input type='hidden' name='vid' value='"+vid+"'>"+
-			  "<input type='hidden' name='crn' value='"+CRN+"'>"+
-			  "<input type='hidden' name='user' value='"+userID+"'>"+
-			  "<input type='hidden' name='pwd' value='"+password+"'>"+
+			  "<input type='hidden' name='crn' value='"+CRN+vid+"'>"+
+		      	  "<input type='hidden' name='"+BN_INPUT+"' value='"+key+"'>"+
+			  "<input type='hidden' name='title' value='"+(studentlist.get(key))+"'>"+ 
+			  //"<input type='hidden' name='vid' value='"+vid+"'>"+
+			  //	  "<input type='hidden' name='crn' value='"+CRN+"'>"+
+			  //  "<input type='hidden' name='user' value='"+userID+"'>"+
+			  //"<input type='hidden' name='pwd' value='"+password+"'>"+*/
 			  "<li><input class='pure-button' type='submit' value='Log in '> " +(studentlist.get(key))+"</form>");
 	  }
         out.println("</ul>"); 
@@ -319,6 +410,7 @@
       }
 
       private void pageheader(PrintWriter out, String title) {
+	  out.println("in pageheader");
 	  out.println("<!doctype html>\n"
 		      + "<html lang='en'>\n"
 		      + "<head>\n"
@@ -338,8 +430,10 @@
       protected void doPost(HttpServletRequest req, HttpServletResponse res)
 	  throws ServletException, IOException
       {
+
+	  doRequest(req, res); 
 	  
-	  String user = req.getParameter("user");
+	  /* String user = req.getParameter("user");
 	  String pwd = req.getParameter("pwd");
 	  PrintWriter out = res.getWriter();
 
@@ -362,7 +456,7 @@
 	      //  PrintWriter out= res.getWriter();
 	      out.println("<font color=red>Access Denied. Please login.</font>");
 	      rd.include(req, res);
-	  }
+	      }*/
       }
       
   }
