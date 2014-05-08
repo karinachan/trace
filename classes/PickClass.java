@@ -11,7 +11,7 @@ public class PickClass extends HttpServlet
     private static final long serialVersionUID = 1L;
     private String userID; //make these final later
     private String password;
-    //   private String crnpick =""; 
+   
     //private String vid; 
     private String logbid;
 
@@ -43,7 +43,7 @@ public class PickClass extends HttpServlet
 
 
 	    
-	    //  out.println(cookies.length); //maybe just simplify this to use cookie length (if 1, then don't let in)
+	    //  out.println(cookies.length);
 	    if (cookies.length<2){ //gonna have to change this.... 
 	    	RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
 		out.println("<font color=red>Access Denied. Please log in.</font>");
@@ -106,7 +106,18 @@ public class PickClass extends HttpServlet
     private void printSessionList(PrintWriter out, Connection con, String self) 
 	throws SQLException
     {
-	PreparedStatement sessionsQuery = con.prepareStatement("select classes.crn, vid, tid, className from sessions, classes where classes.crn=sessions.crn and tid=?");
+	//grabbing the max vid and then incrementing to create the unique vid
+	PreparedStatement visitQuery= con.prepareStatement("select max(vid) from sessions;");
+	ResultSet vidrow= visitQuery.executeQuery();
+
+	String vid= String.valueOf((Math.random() * (10000 - 10)) + 10);
+	if (vidrow.next()){
+	    vid= String.valueOf(Integer.parseInt(vidrow.getString("max(vid)"))+1);
+	}//there, it is now unique lol
+
+
+	PreparedStatement sessionsQuery= con.prepareStatement("select classes.crn, className from tutors, classes where classes.crn=tutors.crn and bid=?;");
+	//	PreparedStatement sessionsQuery = con.prepareStatement("select classes.crn, vid, tid, className from sessions, classes where classes.crn=sessions.crn and tid=?");
 	//	out.println(logbid);
 	int logbidint= Integer.parseInt(logbid);
 	//out.println(logbidint);
@@ -117,15 +128,23 @@ public class PickClass extends HttpServlet
 	out.println("<form method='post' action='SessionVisits'>"); //wasn't working with post...don't know why though
 	out.println("<p><select name='crn'>");
 
+
+
+	
 	while(results.next()){
 	    String crn = results.getString("crn");
 	    //  out.println(crn);
 	    String cname = results.getString("className");
 	    //out.println(cname);
-	    String vid= results.getString("vid");
+	    // String vid= results.getString("vid");
 	    //out.println("vid"+ vid);
 	    //  out.println("tid"+tid);
+
+	    //out.println("<option name='crn' value='"+crn+vid+"'>"+cname+"</option>");
+
 	    out.println("<option name='crn' value='"+crn+vid+"'>"+cname+"</option>");
+
+
 	    //	out.println("<input type='hidden' name='vid' value='"+vid+"'>");
 	}
 
@@ -175,51 +194,7 @@ public class PickClass extends HttpServlet
 	throws ServletException, IOException
     {
 
-		//change this to grab studentBID entries from the database..
-	// String user = req.getParameter("user");
-	// String pwd = req.getParameter("pwd");
-	//	PrintWriter out = res.getWriter();
-	/*    
-        if(userID.equals(user) && password.equals(pwd)){
-            HttpSession session = req.getSession();
-            session.setAttribute("user", "Swag");
-            //setting session to expire in 30 mins
-            session.setMaxInactiveInterval(30*60); 
-            Cookie userName = new Cookie("user", user);
-	    Cookie pwdCook= new Cookie("pwd", password);
-	    Cookie bidCook= new Cookie("bid", logbid);
-	    Cookie crnCook= new Cookie("crn",crnpick);
-            res.addCookie(userName);
-	    res.addCookie(pwdCook);
-	    res.addCookie(bidCook);
-	    res.addCookie(crnCook);
-	*/
 
-	    // out.println("cookie added");
-
-	    /*	    String user = (String) session.getAttribute("user");
-	String userName = null;
-	String sessionID = null;
-	Cookie[] cookies = req.getCookies();
-	if(cookies !=null){
-	    for(Cookie cookie : cookies){
-		if(cookie.getName().equals("user")) userName = cookie.getValue();
-		if(cookie.getName().equals("JSESSIONID")) sessionID = cookie.getValue();
-	    }
-	}
-            //Get the encoded URL string
-	    /*      String encodedURL = response.encodeRedirectURL("http://cs.wellesley.edu:8080/trace/servlet/PickClass"); //this part isn't working...we have a loginsuccess.jsp page but i don't know how to run it. also, i think the sessions got fucked up with the log in part. also as of now there is no way to verify if someone was logged in for each individual sesssion visits or class pick page.....UGH this is really frustrating. 
-		    response.sendRedirect(encodedURL);*/
-
-	/*
-        }else{
-            RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
-	    //  PrintWriter out= res.getWriter();
-            out.println("<font color=red>Either user name or password is wrong.</font>");
-            rd.include(req, res);
-        }
- 
-	*/
 	doRequest(req, res);
       
     }

@@ -56,9 +56,9 @@ create table sessions( -- I think we'll have to have this insert the rest of inf
 vid integer auto_increment primary key not null,
 tid integer not null,
 crn integer not null,
-roomnum varchar(10) not null,
-entertime timestamp not null,
+entertime timestamp default current_timestamp,
 howlong integer, 
+status enum('in progress','closed'),
 foreign key (tid) references tutors(bid) on delete restrict,
 foreign key (crn) references classes(crn) on delete restrict)
 ENGINE = InnoDB;
