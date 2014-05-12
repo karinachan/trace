@@ -27,7 +27,8 @@ public class SessionVisits extends HttpServlet
     private HashMap<String,String> studentlist = new HashMap<String,String>();
     private String logbid;
     private boolean verified=false; //initially not verified
-    
+    private String userName = null;
+    private String sessionID = null;
 
 
     protected void doRequest(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException
@@ -39,12 +40,15 @@ public class SessionVisits extends HttpServlet
 	out.println("in sessionvisits");
 	int visits = updateVisits(session, out);
 	String self = res.encodeURL(req.getRequestURI());
+	
       
 	HashMap<String,String> inSession = (HashMap<String,String>) session.getAttribute("students_loggedin");
 	if( inSession == null ) {
 	    inSession = new HashMap<String,String>();
 	    session.setAttribute("students_loggedin",inSession);
 	}
+	String canceledparam = req.getParameter("canceled");
+	out.println("canceled"+canceledparam);
 	String vid1=vid;
 	out.println("vid1"+vid);
 	CRN = req.getParameter("crn");
@@ -53,31 +57,34 @@ public class SessionVisits extends HttpServlet
 	CRN = CRN.substring(0,5);
 	
 	out.println("crn"+CRN);
-      
-	if(!vid1.equals(vid)){
+	if(canceledparam!=null){
+	    if(canceledparam.equals("true")){
+		out.println("incancelparam");
+		int v1 = Integer.parseInt(vid1);
+		v1 = v1 - 1; 
+		vid1 = Integer.toString(v1);
+	    }
+	}
+	
+       	if(!vid1.equals(vid)){
 	    loaded=false;
 	    clearList(inSession, out);
 	}
-
 
 	Connection con = null;
 	
 
 	try {
 	    pageheader(out,"Session Visits");
-	    out.println("in try");
+	      out.println("in try");
 	
 	    con = TraceDB.connect("trace_db");
 
 	    Cookie [] cookies= req.getCookies();
 	    
-	
-
-	    
-	   
       	    if (cookies.length<4){ //gonna have to change this.... 
 	    	RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
-		out.println("<font color=red>Access Denied. Please log in.</font>");
+			out.println("<font color=red>Access Denied. Please log in.</font>");
 	    
 		rd.include(req, res);
 	    }
@@ -92,15 +99,15 @@ public class SessionVisits extends HttpServlet
           String stuName = req.getParameter("title"); 
           String x = req.getParameter("x");
        	  String button = req.getParameter("update");
-	  // out.println("sessionid"+sessionID);
-	  //out.println("username"+userName);
+	   out.println("sessionid"+sessionID);
+	  out.println("username"+userName);
 	  out.println("visits"+visits);
 	  out.println("loaded"+loaded);
 	  out.println("verified"+verified);
-	  //out.println("CRN"+ CRN);
+	  out.println("CRN"+ CRN);
           if(loaded==false && verified){ //if you've visited the page and you haven't loaded the tree, load it
-	      out.println("in if visits>0 loaded=false");
-	      //     visits = updateVisits(session, out);
+	        out.println("in if visits>0 loaded=false");
+	           visits = updateVisits(session, out);
 	      loaded=true;
 	      PreparedStatement query = con.prepareStatement("select studname, person.bid from taking, person where crn=? and person.bid=taking.bid;");
 	      query.setString(1, CRN);
@@ -108,19 +115,19 @@ public class SessionVisits extends HttpServlet
             
 	      while(result.next()){
 		  String student = result.getString("studname");
-		  //out.println("student:"+student);
+		  out.println("student:"+student);
 		  String bid = result.getString("bid");
-		  //	  out.println("bid:"+bid);
+		  	  out.println("bid:"+bid);
 		  studentlist.put(bid, student);
 	      }
-	      out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+	       out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 	      PreparedStatement visitINSERT= con.prepareStatement("insert into sessions(vid,tid,crn,entertime,howlong,status) values (?,?,?,now(),2,?);"); ///HERE IN INSERT STATEMENT
 	      visitINSERT.setString(1,vid);
 	      visitINSERT.setString(2,logbid);
 	      visitINSERT.setString(3,CRN);
 	      visitINSERT.setString(4,"in progress");
 	      visitINSERT.executeUpdate();
-	      out.println("Session generated");
+	       out.println("Session generated");
 	   
           }
           
@@ -129,15 +136,18 @@ public class SessionVisits extends HttpServlet
 	      inSession.remove(bn);
 	      studentlist.put(bn, stuName);
           }
-	  out.println("button"+button);
+	   out.println("button"+button);
 	   out.println("ABOUT TO UPDATE THE LIST THING"+ bn);
+	   
 	  if(button!=null){
+	
 	      if(button.equals("Submit")){
-		  out.println("update yes");
+		  	  out.println("update yes");
 		 
 		  updateList(con, inSession, out,bn,req,res);
 		 
-	      }
+	      } 
+	      
 	  }
 	  else{
 
@@ -152,11 +162,19 @@ public class SessionVisits extends HttpServlet
 		      "<input type='hidden' name='crn' value='"+CRN+vid+"'>"+
 		      
 	  	      "<input class='pure-button' type='submit' name='update' value='Submit'></form>");
-	  out.println( "<form class='pure-form' method='post' action='PickClass'>"+
-		       "<input type='submit' name='back' value='Back'></form>");
+	  //	  cancelSessions(out, con);
+	  /*	  out.println( "<form class='pure-form' method='post' action='PickClass'>"+
+		  "<input type='submit' name='back' value='Back'></form>");*/
+
+	  boolean canceled = true; 
+	  	out.println("<form method='post' action='PickClass'>"+
+			    "<input type='hidden' name='hiddenvid' value='"+vid+"'>"+
+			    "<input type='hidden' name='canceled' value='"+canceled+"'>"+
+		    "<input type='submit' name='cancel' value='Cancel Session'></form>");
 		     
         }
         catch (SQLException e) {
+
 	    out.println("Error: " + e);         
         }
         catch (Exception e) {
@@ -175,38 +193,39 @@ public class SessionVisits extends HttpServlet
 		}
 	    }
         }
+	//	logout(out);
+	
         out.println("</body></html>");
     }
       
     private boolean checkCookies(Cookie [] cookies, HttpSession session, PrintWriter out, Connection con, HttpServletRequest req, HttpServletResponse res){
-		String userName = null;
-	String sessionID = null;
+	
 	boolean working= false;
-	out.println("in checkCookie"); 
+		out.println("in checkCookie"); 
 	for (Cookie cookie: cookies){
 		    
 	    if (cookie!=null){
 		if(cookie.getName().equals("user")){
 		    userName = cookie.getValue();
-		    out.println("username"+userName);
+		     out.println("username"+userName);
 		}
 		if(cookie.getName().equals("JSESSIONID")){
 		    sessionID = cookie.getValue();
-		    out.println("sessionID"+sessionID);
+		     out.println("sessionID"+sessionID);
 		}
 		if (cookie.getName().equals("bid")){
 		    logbid= cookie.getValue();
-		    out.println("logbid"+logbid);
+		     out.println("logbid"+logbid);
 		}
 		//do this earlier? 
 	       
 		if (cookie.getName().equals("pwd")){
 		    password=cookie.getValue();
-		    out.println("password"+password);
+		     out.println("password"+password);
 		}
 		if (cookie.getName().equals("crn")){
 		    CRN=cookie.getValue();
-		    out.println("crnpick"+CRN);
+		     out.println("crnpick"+CRN);
 		}
 		working=true;	
 	    }}
@@ -216,6 +235,15 @@ public class SessionVisits extends HttpServlet
 	    return working;
 	
     }
+
+  
+
+    /*
+  private void logout(PrintWriter out){
+	out.println("<form method='post' action='LogoutServlet'>"+
+		    "<input type='submit' name='logout' value='Logout'></form>");
+	
+		    } */
       private int updateVisits(HttpSession session, PrintWriter out) {
 	  Integer visits = (Integer)session.getAttribute("visits");
 	  if(visits == null){
@@ -253,6 +281,7 @@ public class SessionVisits extends HttpServlet
 		  }
 	      }
 	  }
+	  
          
       }
 
@@ -280,9 +309,7 @@ public class SessionVisits extends HttpServlet
 	    
 	 
 	  }
-	  else{
-	      out.println("else");
-	  }
+	 
       }
 
     private void updateList(Connection con, HashMap<String,String> loggedin, PrintWriter out, String bn, HttpServletRequest req, HttpServletResponse res) throws SQLException{
@@ -291,32 +318,35 @@ public class SessionVisits extends HttpServlet
 	  Iterator it= keys.iterator();
 	  while(it.hasNext()){
 	      String key = (String) it.next();
-	      out.println("key"+key);
+	       out.println("key"+key);
 	      
 
-	      out.println("inside updateList: the key:"+key);
+	       out.println("inside updateList: the key:"+key);
 	      out.println("inside updateList: the vid: "+ vid);
-	      try{
+	    
 	      PreparedStatement query = con.prepareStatement("INSERT into visiting (bid, vid) VALUES(?, ?);");
 	      
 	      query.setString(1, key); //trying to pass through 
 	      query.setString(2, vid); //how do we get the vid  of this? as the session id? 
 	      query.executeUpdate();
-	      out.println("Database updated!");
+	       out.println("Database updated!");
 
 	      PreparedStatement closeshop= con.prepareStatement("UPDATE sessions SET status='closed' WHERE vid=?");
 	      closeshop.setString(1, vid);
 	      closeshop.executeUpdate();
-	      out.println("Session closed");
-	      //  res.sendRedirect("http://cs.wellesley.edu:8080/trace/servlet/ConfirmSubmit");
+	       out.println("Session closed");
+	  }
+	  try{
+	      res.sendRedirect("http://cs.wellesley.edu:8080/trace/servlet/ConfirmSubmit");
 	      RequestDispatcher rd = getServletContext().getRequestDispatcher("/servlet/ConfirmSubmit");
 	      rd.include(req, res);
-
+	      
+	      
 
 	      }
 	      catch (Exception e){
 		  out.println(e);	  
-	      }	}	//	} 
+	      	}	//	} 
       }
       
       private void processShowinSession(HttpServletRequest req, PrintWriter out,String self,HashMap<String,String> loggedin) {
@@ -352,7 +382,7 @@ public class SessionVisits extends HttpServlet
 	  out.println("<p>Class List:</p>");
 	  out.println("<ul>");
 	  while (it.hasNext()) {
-	      //      out.println("in it");
+	            out.println("in it");
 	      String key = (String) it.next();
   
 	      out.println("<form class='pure-form' method='post' action='"+self+"'>"+
@@ -367,7 +397,7 @@ public class SessionVisits extends HttpServlet
       }
 
       private void pageheader(PrintWriter out, String title) {
-	  out.println("in pageheader");
+	    out.println("in pageheader");
 	  out.println("<!doctype html>\n"
 		      + "<html lang='en'>\n"
 		      + "<head>\n"
@@ -381,7 +411,15 @@ public class SessionVisits extends HttpServlet
       protected void doGet(HttpServletRequest req, HttpServletResponse res)
 	  throws ServletException, IOException
       {
+	  try{ 
 	  doRequest(req,res);
+	  } catch (Exception e) { //we are hitting a null error here- i think we have to save values we collect
+	      //in the doRequest with our initial visit into cookies so that they are saved... 
+	      //handling now with a redirect back to the pick class page (this creates incomplete entries though
+	      
+	  res.sendRedirect("http://cs.wellesley.edu:8080/trace/servlet/PickClass");
+	  }
+
       }
 
       protected void doPost(HttpServletRequest req, HttpServletResponse res)

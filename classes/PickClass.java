@@ -39,45 +39,86 @@ public class PickClass extends HttpServlet
 
 	    String userName = null;
 	    String sessionID = null;
-	
-
-
+	    String button = req.getParameter("cancel");
+	    String canceled = req.getParameter("canceled");
+	    String tempvid = req.getParameter("hiddenvid");
+	    out.println("button"+button);
+	    out.println("tempvid"+tempvid);
+	   
 	    
-	    //  out.println(cookies.length);
-	    if (cookies.length<2){ //gonna have to change this.... 
+	      out.println("length"+cookies.length);
+	      if (cookies.length<4){ //gonna have to change this.... 
 	    	RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
 		out.println("<font color=red>Access Denied. Please log in.</font>");
 	    
 		rd.include(req, res);
 	    }
-	    else {
-		for (Cookie cookie: cookies){
-		    
-		    if (cookie!=null){
-			if(cookie.getName().equals("user")){
-			    userName = cookie.getValue();
-			    out.println("username"+userName);
-			}
+	      else {
+		  out.println("sessid"+sessionID);
+		  for (Cookie cookie: cookies){
+		      out.println("cookie"+cookie.getName());
+		      if (cookie==null){ //if the cookie is nulled 
+			  RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
+			  out.println("<font color=red>Access Denied. Please log in.</font>");
+	    
+			  rd.include(req, res);
+
+		      }
 			if(cookie.getName().equals("JSESSIONID")){
 			    sessionID = cookie.getValue();
-			    out.println("sessionID"+sessionID);
+			     out.println("sessionID"+sessionID);
+			} 
+			if(cookie.getName().equals("user")){
+			    userName = cookie.getValue();
+			     out.println("username"+userName);
 			}
+		
 			if (cookie.getName().equals("bid")){
 			    logbid= cookie.getValue();
-			    out.println("logbid"+logbid);
+			     out.println("logbid"+logbid);
 			}
 			//do this earlier? 
 	       
 			if (cookie.getName().equals("pwd")){
 			    password=cookie.getValue();
-			    out.println("password"+password);
+			     out.println("password"+password);
 			}
 			
-		    }
+			//  }
 		}
 		String name = getName(con,logbid);
+		boolean deleted = false;
 		out.println("<h2>Welcome "+name+".</h2>");
-		printSessionList(out, con, self);
+		if(button!=null){
+		    if (button.equals("Cancel Session")){
+			out.println("cancelling");
+			cancelSessions(out,con,tempvid);
+			out.println("yay success!");
+		        deleted = true; 
+
+
+		    }
+		}
+		PreparedStatement typequery = con.prepareStatement("select ptype from person where bid=?");
+		typequery.setString(1, logbid);
+		ResultSet rs = typequery.executeQuery();
+		String ptype = ""; 
+		//out.println("here");
+		if(rs.next())
+		    ptype = rs.getString("ptype");
+		//	out.println("ptype"+ptype);
+		//out.println("here again");
+		if(ptype!=null){
+		    if(ptype.equals("admin")){
+			adminSearch(out, con);
+		    }
+		}
+		else{
+		    out.println("here3");
+		    printSessionList(out, con, self, deleted, canceled);
+		}
+	    
+		logout(out);
 	    }
 	}
 	catch (SQLException e) {
@@ -88,7 +129,7 @@ public class PickClass extends HttpServlet
 	    out.println("<font color=red>Access Denied. Please log in.</font>");
 	    
             rd.include(req, res);
-	    e.printStackTrace(out);
+	    // e.printStackTrace(out);
 	}
 	finally {
 	    if(con!=null){
@@ -103,7 +144,49 @@ public class PickClass extends HttpServlet
 	out.println("</body></html>");
     }
 
-    private void printSessionList(PrintWriter out, Connection con, String self) 
+    private void adminSearch(PrintWriter out, Connection con) throws SQLException {
+	out.println("<p><b>All Sessions:</p></b>");
+	Statement query = con.createStatement();
+	ResultSet rs = query.executeQuery("select vid, sessions.tid, studname, sessions.crn, className, vtype, entertime, howlong, status from sessions, person, classes where sessions.tid=person.bid and sessions.crn=classes.crn;");
+	out.println("<table border='1'>");
+	out.println("<tr><th>vid</th><th>Tutor ID</th><th>Name</th><th>CRN</th><th>Class</th><th>Type</th><th>Start</th><th>Length</th><th>Status</th>");
+	while(rs.next()){
+	    String vid = rs.getString("vid");
+	    String tid = rs.getString("tid");
+	    String name = rs.getString("studname");
+	    String crn = rs.getString("crn");
+	    String cname = rs.getString("className");
+	    String vtype = rs.getString("vtype");
+	    String start = rs.getString("entertime");
+	    String length = rs.getString("howlong");
+	    String status = rs.getString("status");
+	    out.println("<tr><td>"+vid+"</td><td>"+tid+"</td><td>"+name+"</td><td>"+crn+"</td><td>"+cname+"</td><td>"+
+			"</td><td>"+vtype+"</td><td>"+start+"</td><td>"+length+"</td><td>"+status+"</td></tr>");
+	}
+	out.println("</table>");
+	out.println("<br>");
+	
+                   
+    }
+    
+    private void cancelSessions(PrintWriter out, Connection con, String vid) throws SQLException{
+	try{ 
+	out.println("in cancel Sessions");
+	PreparedStatement query = con.prepareStatement("delete from sessions where vid=?");
+	query.setString(1, vid);
+	query.executeUpdate();
+
+       	out.println("vid"+vid);
+	out.println("session cancelled");
+	} catch (Exception e){
+	    out.println("vid: "+ vid);
+	   
+
+	}
+	
+    }
+
+    private void printSessionList(PrintWriter out, Connection con, String self, boolean deleted, String canceled) 
 	throws SQLException
     {
 	//grabbing the max vid and then incrementing to create the unique vid
@@ -112,7 +195,10 @@ public class PickClass extends HttpServlet
 
 	String vid= String.valueOf((Math.random() * (10000 - 10)) + 10);
 	if (vidrow.next()){
-	    vid= String.valueOf(Integer.parseInt(vidrow.getString("max(vid)"))+1);
+	    //	    if(deleted)
+	    //	vid = String.valueOf(Integer.parseInt(vidrow.getString("max(vid)"))+2);
+	    // else
+	    	vid= String.valueOf(Integer.parseInt(vidrow.getString("max(vid)"))+1);
 	}//there, it is now unique lol
 
 
@@ -130,7 +216,7 @@ public class PickClass extends HttpServlet
 
 
 
-	
+    	
 	while(results.next()){
 	    String crn = results.getString("crn");
 	    //  out.println(crn);
@@ -156,8 +242,16 @@ public class PickClass extends HttpServlet
 		    "<input type='hidden' name='pwd' value='"+password+"'>"+
 	   
 	*/
-	out.println("<input type='submit' name='submit' value='Go'></form>");
+	//	String canceled = cancel; 
+	out.println("<input type='hidden' name='canceled' value='"+canceled+"'>"+
+		    "<input type='submit' name='submit' value='Go'></form>");
+    
+    }
 
+    private void logout(PrintWriter out){
+	out.println("<form method='post' action='LogoutServlet'>"+
+		    "<input type='submit' name='logout' value='Logout'></form>");
+	
     }
 
     private String getName(Connection con, String logbid) 

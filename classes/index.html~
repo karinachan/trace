@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="US-ASCII">
+<title>Login Page</title>
+<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.4.2/pure-min.css">
+</head>
+<body>
+
+<form class="pure-form" action="http://cs.wellesley.edu:8080/trace/servlet/LoginServlet" method="post">
+  <fieldset class="pure-group">
+<input type="text" name="user" placeholder="Username">
+
+<input type="password" name="pwd" placeholder="Password">
+
+</fieldset>
+<input type="submit"  class="pure-button" value="Login">
+</form>
+</body>
+</html>
