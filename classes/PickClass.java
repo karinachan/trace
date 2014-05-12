@@ -26,11 +26,9 @@ public class PickClass extends HttpServlet
 	String self = res.encodeURL(req.getRequestURI());
 
 	Connection con = null; 
-	/*	
-	out.println("user"+req.getCookie("user"));
-	out.println("pwd"+req.getCookie("pwd"));
+		
 	
-	*/
+	
 	try {
 	    pageHeader(out, "Pick Class");
 	    con = TraceDB.connect("trace_db");
@@ -47,14 +45,23 @@ public class PickClass extends HttpServlet
 	   
 	    
 	      out.println("length"+cookies.length);
-	      if (cookies.length<4){ //gonna have to change this.... 
+
+	      //welp, so why are there 9 cookies? 
+	      if (cookies.length<9){ //gonna have to change this.... 
 	    	RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
 		out.println("<font color=red>Access Denied. Please log in.</font>");
 	    
 		rd.include(req, res);
-	    }
+	      }
 	      else {
 		  out.println("sessid"+sessionID);
+		  /*	  if (sessionID==null) {
+		      res.sendRedirect("http://cs.wellesley.edu:8080/trace/");
+		     
+
+		  }
+		  */
+
 		  for (Cookie cookie: cookies){
 		      out.println("cookie"+cookie.getName());
 		      if (cookie==null){ //if the cookie is nulled 
@@ -67,6 +74,7 @@ public class PickClass extends HttpServlet
 			if(cookie.getName().equals("JSESSIONID")){
 			    sessionID = cookie.getValue();
 			     out.println("sessionID"+sessionID);
+			    
 			} 
 			if(cookie.getName().equals("user")){
 			    userName = cookie.getValue();
