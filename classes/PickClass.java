@@ -46,8 +46,8 @@ public class PickClass extends HttpServlet
 	    
 	      out.println("length"+cookies.length);
 
-	      //welp, so why are there 9 cookies? 
-	      if (cookies.length<9){ //gonna have to change this.... 
+	     
+	      if (cookies.length<4){ //gonna have to change this.... 
 	    	RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
 		out.println("<font color=red>Access Denied. Please log in.</font>");
 	    
@@ -65,10 +65,7 @@ public class PickClass extends HttpServlet
 		  for (Cookie cookie: cookies){
 		      out.println("cookie"+cookie.getName());
 		      if (cookie==null){ //if the cookie is nulled 
-			  RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
-			  out.println("<font color=red>Access Denied. Please log in.</font>");
-	    
-			  rd.include(req, res);
+			 res.sendRedirect("http://cs.wellesley.edu:8080/trace/");
 
 		      }
 			if(cookie.getName().equals("JSESSIONID")){
