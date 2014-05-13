@@ -12,7 +12,7 @@ public class PickClass extends HttpServlet
     private String userID; //make these final later
     private String password;
    
-    //private String vid; 
+   
     private String logbid;
 
     protected void doRequest(HttpServletRequest req, HttpServletResponse res)
@@ -40,11 +40,11 @@ public class PickClass extends HttpServlet
 	    String button = req.getParameter("cancel");
 	    String canceled = req.getParameter("canceled");
 	    String tempvid = req.getParameter("hiddenvid");
-	    out.println("button"+button);
-	    out.println("tempvid"+tempvid);
+	    //	    out.println("button"+button);
+	    //  out.println("tempvid"+tempvid);
 	   
 	    
-	      out.println("length"+cookies.length);
+	    // out.println("length"+cookies.length);
 
 	     
 	      if (cookies.length<4){ //gonna have to change this.... 
@@ -54,7 +54,7 @@ public class PickClass extends HttpServlet
 		rd.include(req, res);
 	      }
 	      else {
-		  out.println("sessid"+sessionID);
+		  //	  out.println("sessid"+sessionID);
 		  /*	  if (sessionID==null) {
 		      res.sendRedirect("http://cs.wellesley.edu:8080/trace/");
 		     
@@ -63,30 +63,30 @@ public class PickClass extends HttpServlet
 		  */
 
 		  for (Cookie cookie: cookies){
-		      out.println("cookie"+cookie.getName());
+		      //   out.println("cookie"+cookie.getName());
 		      if (cookie==null){ //if the cookie is nulled 
 			 res.sendRedirect("http://cs.wellesley.edu:8080/trace/");
 
 		      }
 			if(cookie.getName().equals("JSESSIONID")){
 			    sessionID = cookie.getValue();
-			     out.println("sessionID"+sessionID);
+			    //     out.println("sessionID"+sessionID);
 			    
 			} 
 			if(cookie.getName().equals("user")){
 			    userName = cookie.getValue();
-			     out.println("username"+userName);
+			    //  out.println("username"+userName);
 			}
 		
 			if (cookie.getName().equals("bid")){
 			    logbid= cookie.getValue();
-			     out.println("logbid"+logbid);
+			    //  out.println("logbid"+logbid);
 			}
 			//do this earlier? 
 	       
 			if (cookie.getName().equals("pwd")){
 			    password=cookie.getValue();
-			     out.println("password"+password);
+			    // out.println("password"+password);
 			}
 			
 			//  }
@@ -96,9 +96,9 @@ public class PickClass extends HttpServlet
 		out.println("<h2>Welcome "+name+".</h2>");
 		if(button!=null){
 		    if (button.equals("Cancel Session")){
-			out.println("cancelling");
+			//	out.println("cancelling");
 			cancelSessions(out,con,tempvid);
-			out.println("yay success!");
+			//	out.println("yay success!");
 		        deleted = true; 
 
 
@@ -119,7 +119,7 @@ public class PickClass extends HttpServlet
 		    }
 		}
 		else{
-		    out.println("here3");
+		    //   out.println("here3");
 		    printSessionList(out, con, self, deleted, canceled);
 		}
 	    
@@ -176,15 +176,15 @@ public class PickClass extends HttpServlet
     
     private void cancelSessions(PrintWriter out, Connection con, String vid) throws SQLException{
 	try{ 
-	out.println("in cancel Sessions");
+	    //	out.println("in cancel Sessions");
 	PreparedStatement query = con.prepareStatement("delete from sessions where vid=?");
 	query.setString(1, vid);
 	query.executeUpdate();
 
-       	out.println("vid"+vid);
-	out.println("session cancelled");
+	//	out.println("vid"+vid);
+	//	out.println("session cancelled");
 	} catch (Exception e){
-	    out.println("vid: "+ vid);
+	    //  out.println("vid: "+ vid);
 	   
 
 	}

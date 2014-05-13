@@ -37,7 +37,7 @@ public class SessionVisits extends HttpServlet
 	res.setContentType("text/html");
 	res.setHeader("pragma", "no-cache");
 	PrintWriter out = res.getWriter();
-	out.println("in sessionvisits");
+	//	out.println("in sessionvisits");
 	int visits = updateVisits(session, out);
 	String self = res.encodeURL(req.getRequestURI());
 	
@@ -48,18 +48,18 @@ public class SessionVisits extends HttpServlet
 	    session.setAttribute("students_loggedin",inSession);
 	}
 	String canceledparam = req.getParameter("canceled");
-	out.println("canceled"+canceledparam);
+	//	out.println("canceled"+canceledparam);
 	String vid1=vid;
-	out.println("vid1"+vid);
+	//	out.println("vid1"+vid);
 	CRN = req.getParameter("crn");
 	vid = CRN.substring(5);
-	out.println("vid"+vid);
+	//	out.println("vid"+vid);
 	CRN = CRN.substring(0,5);
 	
-	out.println("crn"+CRN);
+	//	out.println("crn"+CRN);
 	if(canceledparam!=null){
 	    if(canceledparam.equals("true")){
-		out.println("incancelparam");
+		//	out.println("incancelparam");
 		int v1 = Integer.parseInt(vid1);
 		v1 = v1 - 1; 
 		vid1 = Integer.toString(v1);
@@ -76,7 +76,7 @@ public class SessionVisits extends HttpServlet
 
 	try {
 	    pageheader(out,"Session Visits");
-	      out.println("in try");
+	    //  out.println("in try");
 	
 	    con = TraceDB.connect("trace_db");
 
@@ -99,14 +99,14 @@ public class SessionVisits extends HttpServlet
           String stuName = req.getParameter("title"); 
           String x = req.getParameter("x");
        	  String button = req.getParameter("update");
-	   out.println("sessionid"+sessionID);
+	  /*  out.println("sessionid"+sessionID);
 	  out.println("username"+userName);
 	  out.println("visits"+visits);
 	  out.println("loaded"+loaded);
 	  out.println("verified"+verified);
-	  out.println("CRN"+ CRN);
+	  out.println("CRN"+ CRN);*/
           if(loaded==false && verified){ //if you've visited the page and you haven't loaded the tree, load it
-	        out.println("in if visits>0 loaded=false");
+	      //  out.println("in if visits>0 loaded=false");
 	           visits = updateVisits(session, out);
 	      loaded=true;
 	      PreparedStatement query = con.prepareStatement("select studname, person.bid from taking, person where crn=? and person.bid=taking.bid;");
@@ -115,19 +115,19 @@ public class SessionVisits extends HttpServlet
             
 	      while(result.next()){
 		  String student = result.getString("studname");
-		  out.println("student:"+student);
+		  //  out.println("student:"+student);
 		  String bid = result.getString("bid");
-		  	  out.println("bid:"+bid);
+		  //	  out.println("bid:"+bid);
 		  studentlist.put(bid, student);
 	      }
-	       out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+	      // out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 	      PreparedStatement visitINSERT= con.prepareStatement("insert into sessions(vid,tid,crn,entertime,howlong,status) values (?,?,?,now(),2,?);"); ///HERE IN INSERT STATEMENT
 	      visitINSERT.setString(1,vid);
 	      visitINSERT.setString(2,logbid);
 	      visitINSERT.setString(3,CRN);
 	      visitINSERT.setString(4,"in progress");
 	      visitINSERT.executeUpdate();
-	       out.println("Session generated");
+	      //  out.println("Session generated");
 	   
           }
           
@@ -136,13 +136,13 @@ public class SessionVisits extends HttpServlet
 	      inSession.remove(bn);
 	      studentlist.put(bn, stuName);
           }
-	   out.println("button"+button);
-	   out.println("ABOUT TO UPDATE THE LIST THING"+ bn);
+	  // out.println("button"+button);
+	  // out.println("ABOUT TO UPDATE THE LIST THING"+ bn);
 	   
 	  if(button!=null){
 	
 	      if(button.equals("Submit")){
-		  	  out.println("update yes");
+		  //	  	  out.println("update yes");
 		 
 		  updateList(con, inSession, out,bn,req,res);
 		 
@@ -153,7 +153,7 @@ public class SessionVisits extends HttpServlet
 
 	  
 	      addtolist(con, inSession,out,bn,stuName, x, req);  
-	  // updateList(con, inSession,out,bn); 
+	
 	      processShowinSession(req,out,self,inSession);
 	      printforms(out,con,self);
 	  }
@@ -188,12 +188,12 @@ public class SessionVisits extends HttpServlet
 		    con.close();
 		}
 		catch( Exception e ) {
-		    out.println("the last one");
+		    //	    out.println("the last one");
 		    e.printStackTrace(out);
 		}
 	    }
         }
-	//	logout(out);
+
 	
         out.println("</body></html>");
     }
@@ -201,31 +201,31 @@ public class SessionVisits extends HttpServlet
     private boolean checkCookies(Cookie [] cookies, HttpSession session, PrintWriter out, Connection con, HttpServletRequest req, HttpServletResponse res){
 	
 	boolean working= false;
-		out.println("in checkCookie"); 
+	//		out.println("in checkCookie"); 
 	for (Cookie cookie: cookies){
 		    
 	    if (cookie!=null){
 		if(cookie.getName().equals("user")){
 		    userName = cookie.getValue();
-		     out.println("username"+userName);
+		    //	     out.println("username"+userName);
 		}
 		if(cookie.getName().equals("JSESSIONID")){
 		    sessionID = cookie.getValue();
-		     out.println("sessionID"+sessionID);
+		    // out.println("sessionID"+sessionID);
 		}
 		if (cookie.getName().equals("bid")){
 		    logbid= cookie.getValue();
-		     out.println("logbid"+logbid);
+		    // out.println("logbid"+logbid);
 		}
 		//do this earlier? 
 	       
 		if (cookie.getName().equals("pwd")){
 		    password=cookie.getValue();
-		     out.println("password"+password);
+		    //  out.println("password"+password);
 		}
 		if (cookie.getName().equals("crn")){
 		    CRN=cookie.getValue();
-		     out.println("crnpick"+CRN);
+		    //  out.println("crnpick"+CRN);
 		}
 		working=true;	
 	    }}
@@ -303,7 +303,7 @@ public class SessionVisits extends HttpServlet
 		studentlist.remove(bn);
 	    } 
 	    catch (Exception e){
-		out.println("Carry on");
+		//	out.println("Carry on");
 	    }
 	    String button = req.getParameter("submit");
 	    
@@ -318,11 +318,11 @@ public class SessionVisits extends HttpServlet
 	  Iterator it= keys.iterator();
 	  while(it.hasNext()){
 	      String key = (String) it.next();
-	       out.println("key"+key);
+	      // out.println("key"+key);
 	      
 
-	       out.println("inside updateList: the key:"+key);
-	      out.println("inside updateList: the vid: "+ vid);
+	      //  out.println("inside updateList: the key:"+key);
+	      // out.println("inside updateList: the vid: "+ vid);
 	    
 	      PreparedStatement query = con.prepareStatement("INSERT into visiting (bid, vid) VALUES(?, ?);");
 	      
@@ -382,7 +382,7 @@ public class SessionVisits extends HttpServlet
 	  out.println("<p>Class List:</p>");
 	  out.println("<ul>");
 	  while (it.hasNext()) {
-	            out.println("in it");
+	      //          out.println("in it");
 	      String key = (String) it.next();
   
 	      out.println("<form class='pure-form' method='post' action='"+self+"'>"+
@@ -397,7 +397,7 @@ public class SessionVisits extends HttpServlet
       }
 
       private void pageheader(PrintWriter out, String title) {
-	    out.println("in pageheader");
+	  // out.println("in pageheader");
 	  out.println("<!doctype html>\n"
 		      + "<html lang='en'>\n"
 		      + "<head>\n"
