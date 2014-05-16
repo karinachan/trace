@@ -25,9 +25,7 @@ public class PickClass extends HttpServlet
 
 	String self = res.encodeURL(req.getRequestURI());
 
-	Connection con = null; 
-		
-	
+	Connection con = null; 	
 	
 	try {
 	    pageHeader(out, "Pick Class");
@@ -115,7 +113,7 @@ public class PickClass extends HttpServlet
 		//out.println("here again");
 		if(ptype!=null){
 		    if(ptype.equals("admin")){
-			adminSearch(out, con);
+			adminSearch(out, con, self, req);
 		    }
 		}
 		else{
@@ -149,12 +147,24 @@ public class PickClass extends HttpServlet
 	out.println("</body></html>");
     }
 
-    private void adminSearch(PrintWriter out, Connection con) throws SQLException {
-	out.println("<p><b>All Sessions:</p></b>");
+    private void adminSearch(PrintWriter out, Connection con, String self, HttpServletRequest req) throws SQLException {
 	Statement query = con.createStatement();
-	ResultSet rs = query.executeQuery("select vid, sessions.tid, studname, sessions.crn, className, vtype, entertime, howlong, status from sessions, person, classes where sessions.tid=person.bid and sessions.crn=classes.crn;");
+	//	ResultSet rs = query.executeQuery("select vid, sessions.tid, studname, sessions.crn, className, vtype, entertime, howlong, status from sessions, person, classes where sessions.tid=person.bid and sessions.crn=classes.crn;");
+
+
+	out.println("<br><b>Search:</b><br>");
+	out.println("<form method='post' action='"+self+"'>");
+	out.println("<select name='helptype'><option value='Select'>Select...</option><option value='SI'>SI</option><option value='helproom/peer tutoring'>Help Room</option><option value='writing tutor'>Writing Tutor</option><option value='none'>None</option>");
+	out.println("<input type='text' name='person' value='Person'></input>");
+	out.println("<input type='text' name='class' value='Class'></input>");
+	out.println("<input type='text' name='date' value='Date (yyyy-mm-dd)'></input>");
+	out.println("<input type='submit' name='submit' value='Go'></input></form><br>");
+
+	ResultSet rs = getQuery(con, req, out);
+	out.println("<p><b>All Sessions:</p></b>");
+
 	out.println("<table border='1'>");
-	out.println("<tr><th>vid</th><th>Tutor ID</th><th>Name</th><th>CRN</th><th>Class</th><th>Type</th><th>Start</th><th>Length</th><th>Status</th>");
+	out.println("<tr><th>vid</th><th>Tutor ID</th><th>Name</th><th>CRN</th><th>Class</th><th>Type</th><th>Start</th><th>Length</th><th>Status</th></tr>");
 	while(rs.next()){
 	    String vid = rs.getString("vid");
 	    String tid = rs.getString("tid");
@@ -165,13 +175,85 @@ public class PickClass extends HttpServlet
 	    String start = rs.getString("entertime");
 	    String length = rs.getString("howlong");
 	    String status = rs.getString("status");
-	    out.println("<tr><td>"+vid+"</td><td>"+tid+"</td><td>"+name+"</td><td>"+crn+"</td><td>"+cname+"</td><td>"+
-			"</td><td>"+vtype+"</td><td>"+start+"</td><td>"+length+"</td><td>"+status+"</td></tr>");
+	    out.println("<tr><td>"+vid+"</td><td>"+tid+"</td><td>"+name+"</td><td>"+crn+"</td><td>"+cname+"</td><td>"+vtype+"</td><td>"+start+"</td><td>"+length+"</td><td>"+status+"</td></tr>");
 	}
 	out.println("</table>");
 	out.println("<br>");
 	
                    
+    }
+
+    private ResultSet  getQuery(Connection con, HttpServletRequest req, PrintWriter out) throws SQLException {
+	String type = req.getParameter("helptype");
+	String person = req.getParameter("person");
+	String classname = req.getParameter("class");
+	String date = req.getParameter("date");
+	/*	out.println(type);
+	out.println(person);
+	out.println(classname);
+	out.println(date);*/
+	boolean entertype = false; 
+	boolean enterperson = false;
+	boolean enterclass = false; 
+	boolean enterdate = false; 
+	int querycount = 0; 
+	String querystring = "select vid, sessions.tid, studname, sessions.crn, className, vtype, entertime, howlong, status from sessions, person, classes where sessions.tid=person.bid and sessions.crn=classes.crn"; 
+	if(type!=null){
+	    if(!(type.equals("Select")||type.equals(""))){
+		querycount++; 
+		querystring = querystring + " and vtype = ?";
+		entertype = true; 
+	    }
+	}
+	if(person!=null){
+	    if(!(person.equals("Person")||person.equals(""))){
+		querycount++;
+		querystring = querystring + " and studname like ?";
+		enterperson = true; 
+	    }
+	}
+	if(classname!=null){
+	    if(!(classname.equals("Class")||classname.equals(""))){
+		querycount++;
+		querystring = querystring + " and className like ?";
+		enterclass = true; 
+	    }
+	}
+	if(date!=null){
+	    if(!(date.equals("Date (yyyy-mm-dd)")||date.equals(""))){
+		querycount++; 
+		querystring = querystring + " and entertime like ?";
+		enterdate = true; 
+	    }
+	}
+	//	out.println(querystring);
+	PreparedStatement query = con.prepareStatement(querystring+";");
+	
+	if(enterdate){
+	    query.setString(querycount, "%"+date+"%"); 
+	    querycount--; 
+	}
+	if(enterclass){
+	    query.setString(querycount, "%"+classname+"%"); 
+	    querycount--; 
+	}
+	if(enterperson){
+	    // out.println("count"+querycount);
+	    //out.println("person"+person); 
+	    query.setString(querycount, "%"+person+"%"); 
+	    querycount--; 
+	}
+	if(entertype){
+	    //    out.println("count"+querycount);
+	    //out.println("type"+type); 
+	    query.setString(querycount, type);
+	    querycount--;
+	}
+	//	out.println(querystring); 
+	    
+	ResultSet rs = query.executeQuery(); 
+	return rs; 
+//	PreparedStatement query = con.prepareStatement();
     }
     
     private void cancelSessions(PrintWriter out, Connection con, String vid) throws SQLException{
