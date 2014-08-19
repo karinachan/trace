@@ -81,9 +81,9 @@ public class LoginServlet extends HttpServlet {
 	try{ 
 	    con=TraceDB.connect("trace_db");
 	    
-	    PreparedStatement sessionUsers= con.prepareStatement("select user, cryp, password(?),bid from login_user where user=?");
-	    sessionUsers.setString(1, pwd);
-	    sessionUsers.setString(2, user);
+	    PreparedStatement sessionUsers= con.prepareStatement("select user, bid from login_user where user=? and cryp=password(?)");
+	    sessionUsers.setString(1, user);
+	    sessionUsers.setString(2, pwd);
 	    ResultSet results = sessionUsers.executeQuery();
 	    if(results.next()){
 		tutorbid= Integer.toString(results.getInt("bid"));
