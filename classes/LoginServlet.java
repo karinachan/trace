@@ -49,7 +49,7 @@ public class LoginServlet extends HttpServlet {
             String encodedURL = response.encodeRedirectURL("http://cs.wellesley.edu:8080/trace/servlet/PickClass");  
             response.sendRedirect(encodedURL);
         }else{
-            RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html");
+		RequestDispatcher rd = getServletContext().getRequestDispatcher("/index.html"); //technically we don't want a hyperlink
 	    //     PrintWriter out= response.getWriter();
             out.println("<font color=red>Either user name or password is wrong.</font>");
             rd.include(request, response);

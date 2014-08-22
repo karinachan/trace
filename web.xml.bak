@@ -36,10 +36,6 @@
     <servlet-class>ConfirmSubmit</servlet-class>
     <servlet-name>ConfirmSubmit</servlet-name>
   </servlet>
-  <servlet>
-    <servlet-class>HTMLFilter</servlet-class>
-    <servlet-name>HTMLFilter</servlet-name>
-  </servlet>
   <servlet-mapping>
     <servlet-name>Greetings</servlet-name>
     <url-pattern>/servlet/Greetings</url-pattern>
@@ -71,9 +67,5 @@
   <servlet-mapping>
     <servlet-name>ConfirmSubmit</servlet-name>
     <url-pattern>/servlet/ConfirmSubmit</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>HTMLFilter</servlet-name>
-    <url-pattern>/servlet/HTMLFilter</url-pattern>
   </servlet-mapping>
 </web-app>

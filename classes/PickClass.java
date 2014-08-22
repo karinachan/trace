@@ -133,9 +133,9 @@ public class PickClass extends HttpServlet
 	String searchurl = getUrl(req);
        
 	//create session forms 
-	out.println("<form method='post'><b>Create Session:</b> <br>"+
+	out.println("<div class='adminsearchbox'><form method='post'><b>Create Session:</b> <br>"+
 		    "Class CRN: <input type='text' name='addcrn' value=''></input><br>"+
-		    "<input type='submit' name='addsession' value='New'></input></form><br>");
+		    "<input type='submit' name='addsession' value='New'></input></form><br></div>");
 
 	String add = req.getParameter("addsession");
 	String addcrn = escape(req.getParameter("addcrn")); 
@@ -151,12 +151,12 @@ public class PickClass extends HttpServlet
 		   
 	//Session search. Can search by type, name, class, date or any combination of the 4. 
 	out.println("<br><b>Search: (Click Go for all sessions) </b><br>");
-	out.println("<form method='get' action='"+self+"'>");
+	out.println("<div class='sessionsearchbox'><form method='get' action='"+self+"'>");
 	out.println("<select name='helptype'><option value='Select'>Select...</option><option value='SI'>SI</option><option value='helproom/peer tutoring'>Help Room</option><option value='writing tutor'>Writing Tutor</option><option value='none'>None</option>");
 	out.println("<input type='text' name='person' value='Person'></input>");
 	out.println("<input type='text' name='class' value='Class'></input>");
 	out.println("<input type='text' name='date' value='Date (yyyy-mm-dd)'></input>");
-	out.println("<input type='submit' name='submit' value='Go'></input></form><br>");
+	out.println("<input type='submit' name='submit' value='Go'></input></form></div><br>");
    
 	//Deletes session if delete button is pushed. 
 	if(update!=null){
@@ -182,10 +182,10 @@ public class PickClass extends HttpServlet
 		
 		//Export button form 
 		out.println("<p><b>Sessions:</p></b>");		
-		out.println("<form action='http://cs.wellesley.edu/~trace/cgi-bin/exporttable.cgi' method='get'>");
+		out.println("<div class='exportbuttonbox'><form action='http://cs.wellesley.edu/~trace/cgi-bin/exporttable.cgi' method='get'>");
 		out.println("<input type='hidden' name='searchurl' value='"+searchurl+"'>");
 		out.println("Export Records: <input type='submit' name='exportfile' value='Export'>");
-		out.println("</form><br>");
+		out.println("</form></div><br>");
 
 		//Records table 
 		out.println("<table border='1'>");
